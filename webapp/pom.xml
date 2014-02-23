@@ -2,17 +2,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <artifactId>perf</artifactId>
-        <groupId>org.lex</groupId>
+        <groupId>org.lex.perf</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>webapp</artifactId>
     <packaging>war</packaging>
-    <name>webapp Maven Webapp</name>
+    <name>Perf webapp application</name>
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>
-            <groupId>org.lex</groupId>
+            <groupId>org.lex.perf</groupId>
             <artifactId>web</artifactId>
         </dependency>
         <dependency>
