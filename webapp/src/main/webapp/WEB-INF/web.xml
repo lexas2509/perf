@@ -4,6 +4,16 @@
          id="WebApp_ID" version="2.5">
     <display-name>Sbns Web Module</display-name>
 
+    <servlet>
+        <servlet-name>report</servlet-name>
+        <servlet-class>org.lex.perf.web.HTTPReport</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>report</servlet-name>
+        <url-pattern>/report</url-pattern>
+    </servlet-mapping>
+
     <filter>
         <filter-name>httpMonitoring</filter-name>
         <filter-class>org.lex.perf.web.HTTPFilter</filter-class>
@@ -15,6 +25,6 @@
     </filter-mapping>
 
     <welcome-file-list>
-        <welcome-file>/html/login.html</welcome-file>
+        <welcome-file>/report</welcome-file>
     </welcome-file-list>
 </web-app>

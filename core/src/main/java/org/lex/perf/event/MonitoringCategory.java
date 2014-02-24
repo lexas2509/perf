@@ -10,4 +10,8 @@ public class MonitoringCategory {
     public MonitoringCategory(String name) {
         this.name = name;
     }
+
+    public String getName() {
+        return name;
+    }
 }

@@ -21,8 +21,12 @@ public class HTTPFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest) {
             long start = System.nanoTime();
-            chain.doFilter(request, response);
-            MonitoringEvent.sendItem(HTTP, ((HttpServletRequest) request).getContextPath(), System.nanoTime() - start);
+            try {
+                chain.doFilter(request, response);
+            } finally {
+                MonitoringEvent.sendItem(HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), System.nanoTime() - start);
+            }
+
         } else {
             chain.doFilter(request, response);
         }
