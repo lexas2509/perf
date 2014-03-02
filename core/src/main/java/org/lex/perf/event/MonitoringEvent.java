@@ -10,7 +10,7 @@ public class MonitoringEvent {
     public long eventTime;
     public long duration;
 
-    public static void sendItem(MonitoringCategory category, String item, long eventTime, long duration) {
+    public static void sendDurationItem(MonitoringCategory category, String item, long eventTime, long duration) {
         MonitoringEvent event = new MonitoringEvent();
         event.category = category;
         event.item = item;

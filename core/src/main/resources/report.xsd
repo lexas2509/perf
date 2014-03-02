@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://perf.lex.org"
+           targetNamespace="http://perf.lex.org" elementFormDefault="qualified">
+
+    <xs:element name="Report" type="Report"/>
+    <xs:complexType name="Report">
+        <xs:sequence maxOccurs="unbounded" minOccurs="0">
+            <xs:choice>
+                <xs:element name="Graph" type="GraphItemType"/>
+                <xs:element name="Table" type="TableItemType"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ReportItemType">
+        <xs:attribute name="category"/>
+    </xs:complexType>
+    <xs:complexType name="GraphItemType">
+        <xs:complexContent>
+            <xs:extension base="ReportItemType">
+                <xs:attribute name="item"/>
+                <xs:attribute name="type"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="TableItemType">
+        <xs:complexContent>
+            <xs:extension base="ReportItemType"/>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

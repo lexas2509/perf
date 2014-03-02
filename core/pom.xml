@@ -18,6 +18,55 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.8.2</version>
+                <configuration>
+                    <args>
+                        <!-- do not generate package info. It's to place namespace info into java files -->
+                        <arg>-npa</arg>
+                    </args>
+                    <encoding>UTF-8</encoding>
+                    <forceRegenerate>true</forceRegenerate>
+                    <cleanPackageDirectories>true</cleanPackageDirectories>
+                    <strict>false</strict>
+                    <verbose>true</verbose>
+                    <extension>true</extension>
+                    <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+<!--                    <bindingDirectory>src/main/resources/com/bssys/sbns/integration/jaxb</bindingDirectory>
+                    <bindingIncludes>
+                        <include>bindings.xjb</include>
+                    </bindingIncludes> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>xjc.other</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <episode>false</episode>
+                            <schemaDirectory>src/main/resources/</schemaDirectory>
+                            <generatePackage>org.lex.perf.report</generatePackage>
+                            <schemaIncludes>
+                                <include>report.xsd</include>
+                            </schemaIncludes>
+                        </configuration>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <!-- logging -->
         <dependency>
@@ -33,8 +82,5 @@
             <artifactId>testng</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-    </build>
 
 </project>

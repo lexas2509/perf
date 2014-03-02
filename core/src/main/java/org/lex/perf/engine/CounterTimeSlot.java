@@ -1,9 +1,11 @@
 package org.lex.perf.engine;
 
+import org.rrd4j.core.Sample;
+
 /**
  * To change this template use File | Settings | File Templates.
  */
-public class CounterTimeSlot {
+public class CounterTimeSlot  extends TimeSlot {
     private final static long[] times = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
     private final static int CNT = times.length;
 
@@ -11,12 +13,9 @@ public class CounterTimeSlot {
     private long max = Long.MIN_VALUE;
     private long total = 0;
     private long[] statTimes = new long[CNT + 1];
-    private long startTime;
-    private long endTime;
 
     public CounterTimeSlot(long startTime, long endTime) {
-        this.startTime = startTime;
-        this.endTime = endTime;
+        super(startTime, endTime);
     }
 
     public synchronized void addHit(long time) {
@@ -61,19 +60,10 @@ public class CounterTimeSlot {
         return total;
     }
 
-    public long getStartTime() {
-        return startTime;
-    }
 
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
+    @Override
+    public void storeData(Sample sample) {
+        sample.setValue("hits", getCount());
+        sample.setValue("value", getTotal());
     }
 }

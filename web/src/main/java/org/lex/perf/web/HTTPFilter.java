@@ -10,8 +10,6 @@ import java.io.IOException;
 /**
  */
 public class HTTPFilter implements Filter {
-    public final static MonitoringCategory HTTP = new MonitoringCategory("HTTP");
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -24,7 +22,7 @@ public class HTTPFilter implements Filter {
             try {
                 chain.doFilter(request, response);
             } finally {
-                MonitoringEvent.sendItem(HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), System.nanoTime() - start);
+                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), System.nanoTime() - start);
             }
 
         } else {

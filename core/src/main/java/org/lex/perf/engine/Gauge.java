@@ -11,19 +11,19 @@ import java.io.IOException;
 
 /**
  */
-public class Counter extends Index<CounterTimeSlot> {
+public class Gauge extends Index<GaugeTimeSlot> {
+
     private final String fileName;
 
-    public Counter(MonitoringCategory category, String name) {
+    public Gauge(MonitoringCategory category, String name) {
         super(category, name);
         try {
             fileName = "e:/mondata/" + counterName + ".rrd";
             RrdDef rrdDef = new RrdDef(fileName);
             rrdDef.setStartTime(Util.getTime() - 1);
-            rrdDef.addDatasource("hits", DsType.ABSOLUTE, 1, 0, Double.NaN);
             rrdDef.addDatasource("value", DsType.ABSOLUTE, 1, 0, Double.NaN);
             rrdDef.setStep(10);
-            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, 1, 7 * 24 * 60);
+            rrdDef.addArchive(ConsolFun.AVERAGE, 0.5, 1, 7 * 24 * 60);
             rrdDb = new RrdDb(rrdDef);
             rrdDb.close();
             rrdDb = new RrdDb(rrdDef);
@@ -32,11 +32,12 @@ public class Counter extends Index<CounterTimeSlot> {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
     }
 
     @Override
-    protected CounterTimeSlot createTimeSlot(long startTime) {
-        return new CounterTimeSlot(startTime, startTime + slotDuration);
+    protected GaugeTimeSlot createTimeSlot(long startTime) {
+        return new GaugeTimeSlot(startTime, startTime + slotDuration);
     }
 
     @Override
