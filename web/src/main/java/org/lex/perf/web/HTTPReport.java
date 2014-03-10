@@ -1,10 +1,7 @@
 package org.lex.perf.web;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.lex.perf.engine.Counter;
-import org.lex.perf.engine.Engine;
-import org.lex.perf.engine.Gauge;
-import org.lex.perf.engine.Index;
+import org.lex.perf.engine.*;
 import org.lex.perf.event.MonitoringCategory;
 import org.lex.perf.report.GraphItemType;
 import org.lex.perf.report.Report;
@@ -132,7 +129,13 @@ public class HTTPReport extends HttpServlet {
         htmlReport.append("<TR>");
         htmlReport.append("<TH>Request</TH>");
         htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>avg</TH>");
+        htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+        for (int i = 0; i < CounterTimeSlot.times.length - 1; i++) {
+            String s = "&lt;" + CounterTimeSlot.times[i + 1];
+            htmlReport.append("<TH class=sorttable_numeric>" + s + "ms</TH>");
+        }
+
+        htmlReport.append("<TH class=sorttable_numeric>&gt;" + CounterTimeSlot.times[CounterTimeSlot.times.length - 1] + "ms </TH>");
         htmlReport.append("</TR>");
         htmlReport.append("</THEAD>");
         htmlReport.append("<TBODY>");
@@ -141,16 +144,18 @@ public class HTTPReport extends HttpServlet {
         for (Index index : indexes) {
             int slotDuration = index.getSlotDuration();
             long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
-            long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 -1;
+            long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
             DataProcessor dp = new DataProcessor(startTime, endTime);
-            dp.setStep(slotDuration/1000);
+            dp.setStep(slotDuration / 1000);
             switch (category.getCategoryType()) {
                 case COUNTER:
                     Counter counter = (Counter) index;
                     dp.addDatasource("hits", "e:/mondata/" + counter.getFileName() + ".rrd", "hits", ConsolFun.TOTAL);
                     dp.addDatasource("total", "e:/mondata/" + counter.getFileName() + ".rrd", "total", ConsolFun.TOTAL);
-                    dp.addDatasource("_hits", "hits, UN, 0, hits, IF");
-                    dp.addDatasource("_total", "total, UN, 0, total, IF");
+
+                    for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
+                        dp.addDatasource("hits" + Integer.toString(i), "e:/mondata/" + counter.getFileName() + ".rrd", "hits" + Integer.toString(i), ConsolFun.TOTAL);
+                    }
                     double hits = 0;
                     double total = 0;
                     try {
@@ -160,17 +165,37 @@ public class HTTPReport extends HttpServlet {
                     }
                     double[][] values = dp.getValues();
                     int cnt = values[0].length;
-                    for (int i =0; i <cnt; i ++) {
-                        hits = hits + values[2][i];
-                        total = total + values[3][i];
+                    for (int i = 0; i < cnt; i++) {
+                        double v = values[0][i];
+                        if (Double.isNaN(v)) {
+                            v = 0;
+                        }
+                        hits = hits + v;
+                        double v1 = values[1][i];
+                        if (Double.isNaN(v1)) {
+                            v1 = 0;
+                        }
+                        total = total + v1;
                     }
                     double average = hits == 0 ? 0 : total / hits;
-                    System.out.println("hits: " + hits + " total " + total + " avg " + average);
 
                     htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
-                    htmlReport.append("<TD>" + index.getIndexName() +"</TD>");
-                    htmlReport.append("<TD>" + Double.toString(hits) + "</TD>");
-                    htmlReport.append("<TD>" + Double.toString(average) + "</TD>");
+                    htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
+                    htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
+                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+
+                    for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
+                        double result = 0;
+                        for (int j = 0; j < cnt; j++) {
+                            double v = values[i + 2][j];
+                            if (Double.isNaN(v)) {
+                                v = 0;
+                            }
+                            result = result + v;
+                        }
+
+                        htmlReport.append("<TD>" + String.format("%16.0f", result) + "</TD>");
+                    }
                     htmlReport.append("</TR>");
                     break;
                 case GAUGE:

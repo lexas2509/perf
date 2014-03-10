@@ -24,6 +24,9 @@ public class Counter extends Index<CounterTimeSlot> {
             int step = slotDuration / 1000;
             rrdDef.addDatasource("hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
             rrdDef.addDatasource("total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
+                rrdDef.addDatasource("hits" + Integer.toString(i), DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            }
 
             rrdDef.setStep(1);
             rrdDef.addArchive(ConsolFun.TOTAL, 0.5, step, Engine.HOUR / step); // per slot for hour

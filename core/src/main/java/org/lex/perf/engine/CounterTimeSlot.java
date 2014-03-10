@@ -1,12 +1,13 @@
 package org.lex.perf.engine;
 
+import org.rrd4j.DsType;
 import org.rrd4j.core.Sample;
 
 /**
  * To change this template use File | Settings | File Templates.
  */
-public class CounterTimeSlot  extends TimeSlot {
-    private final static long[] times = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+public class CounterTimeSlot extends TimeSlot {
+    public final static long[] times = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
     private final static int CNT = times.length;
 
     private long count = 0;
@@ -27,7 +28,7 @@ public class CounterTimeSlot  extends TimeSlot {
 
         // Переведем в ms
 
-        time = time / 1000;
+        time = time / 1000/ 1000;
         int w = CNT / 2;
         int pos = CNT / 2;
         while (w > 1) {
@@ -63,7 +64,13 @@ public class CounterTimeSlot  extends TimeSlot {
 
     @Override
     public void storeData(Sample sample) {
-        sample.setValue("hits", getCount());
-        sample.setValue("total", getTotal());
+        double[] t = new double[statTimes.length + 2];
+        for (int i = 0; i < statTimes.length; i++) {
+            t[i + 2] = statTimes[i];
+        }
+        t[0] = getCount();
+        t[1] = getTotal();
+
+        sample.setValues(t);
     }
 }
