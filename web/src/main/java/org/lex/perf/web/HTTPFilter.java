@@ -23,6 +23,8 @@ public class HTTPFilter implements Filter {
                 chain.doFilter(request, response);
             } finally {
                 MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), System.nanoTime() - start);
+                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, "response", System.currentTimeMillis(), System.nanoTime() - start);
+
             }
 
         } else {

@@ -6,24 +6,27 @@ import org.rrd4j.DsType;
 import org.rrd4j.core.RrdDb;
 import org.rrd4j.core.RrdDef;
 import org.rrd4j.core.Util;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
  */
 public class Gauge extends Index<GaugeTimeSlot> {
-
-    private final String fileName;
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Gauge.class);
 
     public Gauge(MonitoringCategory category, String name) {
         super(category, name);
         try {
-            fileName = "e:/mondata/" + counterName + ".rrd";
-            RrdDef rrdDef = new RrdDef(fileName);
-            rrdDef.setStartTime(Util.getTime() - 1);
-            rrdDef.addDatasource("value", DsType.ABSOLUTE, 1, 0, Double.NaN);
-            rrdDef.setStep(10);
-            rrdDef.addArchive(ConsolFun.AVERAGE, 0.5, 1, 7 * 24 * 60);
+            RrdDef rrdDef = new RrdDef("e:/mondata/" + fileName + ".rrd");
+            rrdDef.setStartTime(sampleTime.get() / 1000);
+            LOGGER.warn( "start " + itemName + ":" + Long.toString(rrdDef.getStartTime()));
+            rrdDef.addDatasource("value", DsType.GAUGE, slotDuration / 1000, -1, Double.MAX_VALUE);
+            rrdDef.setStep(slotDuration / 1000);
+            rrdDef.addArchive(ConsolFun.AVERAGE, 0.5, 1, 60 * 12);
+            rrdDef.addArchive(ConsolFun.AVERAGE, 0.5, 12, 24 * 60 );
+            rrdDef.addArchive(ConsolFun.MAX, 0.5, 1, 60 * 12);
+            rrdDef.addArchive(ConsolFun.MIN, 0.5, 1, 60 * 12);
             rrdDb = new RrdDb(rrdDef);
             rrdDb.close();
             rrdDb = new RrdDb(rrdDef);

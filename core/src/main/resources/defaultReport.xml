@@ -1,4 +1,6 @@
 <Report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://perf.lex.org">
     <Graph category="JVM" item="CPU"/>
     <Graph category="HTTP" item="response"/>
+    <Graph category="JVM" item="Heap"/>
+    <Table category="HTTP"/>
 </Report>

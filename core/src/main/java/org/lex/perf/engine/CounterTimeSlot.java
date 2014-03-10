@@ -64,6 +64,6 @@ public class CounterTimeSlot  extends TimeSlot {
     @Override
     public void storeData(Sample sample) {
         sample.setValue("hits", getCount());
-        sample.setValue("value", getTotal());
+        sample.setValue("total", getTotal());
     }
 }

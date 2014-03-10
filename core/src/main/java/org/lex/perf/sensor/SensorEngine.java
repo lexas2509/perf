@@ -1,37 +1,42 @@
 package org.lex.perf.sensor;
 
-import org.lex.perf.event.MonitoringCategory;
-import org.lex.perf.event.MonitoringEvent;
 import org.lex.perf.event.MonitoringValue;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  */
 public class SensorEngine {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SensorEngine.class);
+
     private final List<Sensor> sensors = new ArrayList<Sensor>();
 
     private Timer sensorTime = new Timer();
 
-    static {
-        new SensorEngine();
-    }
-
     public SensorEngine() {
         sensors.add(new CPUSensor());
+        sensors.add(new HeapSensor());
 
         sensorTime.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                try {
                 for (Sensor sensor : sensors) {
-                    double value = sensor.getValue();
-                    MonitoringValue.sendValueItem(sensor.getCategory(), sensor.getItem(), System.currentTimeMillis(), value);
+                    Map<String, Double> sensorData = sensor.getValues();
+                    String[] sensorItems = sensor.getItems();
+                    long eventTime = System.currentTimeMillis();
+
+                    for (String sensorItem : sensorItems) {
+                        MonitoringValue.sendValueItem(sensor.getCategory(), sensorItem, eventTime, sensorData.get(sensorItem));
+                    }
                 }
+                } catch (Exception e) {
+                    LOGGER.error("", e);
+                }
+
             }
-        }, 1000, 60000);
+        }, 1000, 10000);
     }
 
 }

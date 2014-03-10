@@ -6,24 +6,29 @@ import org.rrd4j.DsType;
 import org.rrd4j.core.RrdDb;
 import org.rrd4j.core.RrdDef;
 import org.rrd4j.core.Util;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
  */
 public class Counter extends Index<CounterTimeSlot> {
-    private final String fileName;
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Counter.class);
 
     public Counter(MonitoringCategory category, String name) {
         super(category, name);
         try {
-            fileName = "e:/mondata/" + counterName + ".rrd";
-            RrdDef rrdDef = new RrdDef(fileName);
-            rrdDef.setStartTime(Util.getTime() - 1);
-            rrdDef.addDatasource("hits", DsType.ABSOLUTE, 1, 0, Double.NaN);
-            rrdDef.addDatasource("value", DsType.ABSOLUTE, 1, 0, Double.NaN);
-            rrdDef.setStep(10);
-            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, 1, 7 * 24 * 60);
+            RrdDef rrdDef = new RrdDef("e:/mondata/" + fileName + ".rrd");
+            rrdDef.setStartTime(sampleTime.get() / 1000);
+            LOGGER.warn("start " + itemName + ":" + Long.toString(rrdDef.getStartTime()));
+            int step = slotDuration / 1000;
+            rrdDef.addDatasource("hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            rrdDef.addDatasource("total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+
+            rrdDef.setStep(1);
+            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, step, Engine.HOUR / step); // per slot for hour
+            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.MINUTE, Engine.DAY / Engine.MINUTE); // per minute for day
+            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.HOUR, Engine.WEEK / Engine.DAY); // per hour for day
             rrdDb = new RrdDb(rrdDef);
             rrdDb.close();
             rrdDb = new RrdDb(rrdDef);

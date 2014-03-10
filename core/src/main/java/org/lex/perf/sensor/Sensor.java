@@ -2,17 +2,15 @@ package org.lex.perf.sensor;
 
 import org.lex.perf.event.MonitoringCategory;
 
+import java.util.Map;
+
 /**
- * Created with IntelliJ IDEA.
- * User: lexas
- * Date: 26.02.14
- * Time: 9:39
- * To change this template use File | Settings | File Templates.
  */
+
 public interface Sensor {
-    double getValue();
+    Map<String, Double> getValues();
 
     MonitoringCategory getCategory();
 
-    String getItem();
+    String[] getItems();
 }

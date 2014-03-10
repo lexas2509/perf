@@ -5,17 +5,22 @@ import org.lex.perf.event.MonitoringCategory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  */
 public class CPUSensor implements Sensor {
     @Override
-    public double getValue() {
+    public Map<String, Double> getValues() {
+        Map<String, Double> map = new HashMap<String, Double>();
         final OperatingSystemMXBean operatingSystem = ManagementFactory.getOperatingSystemMXBean();
         if (operatingSystem.getSystemLoadAverage() >= 0) {
-            return operatingSystem.getSystemLoadAverage();
+            map.put("CPU", operatingSystem.getSystemLoadAverage());
+        } else {
+            map.put("CPU", new Double(-1));
         }
-        return -1;
+        return map;
     }
 
     @Override
@@ -24,7 +29,7 @@ public class CPUSensor implements Sensor {
     }
 
     @Override
-    public String getItem() {
-        return "CPU";
+    public String[] getItems() {
+        return new String[] {"CPU"};
     }
 }
