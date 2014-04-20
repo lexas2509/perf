@@ -8,77 +8,74 @@ import org.lex.perf.report.Report;
 import org.lex.perf.report.ReportItemType;
 import org.lex.perf.report.TableItemType;
 import org.rrd4j.ConsolFun;
-import org.rrd4j.core.FetchData;
 import org.rrd4j.data.DataProcessor;
 import org.rrd4j.graph.RrdGraph;
 import org.rrd4j.graph.RrdGraphDef;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.awt.Color;
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
+ * User: lexas
+ * Date: 04.04.14
+ * Time: 21:24
  */
-public class HTTPReport extends HttpServlet {
-
-    public static class Range {
-        private Date start;
-        private Date end;
-
-        public Range(Date start, Date end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        public Date getStart() {
-            return start;
-        }
-
-        public Date getEnd() {
-            return end;
-        }
-    }
-
+public class PerformanceReport implements HttpItem {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        Date now = new Date();
-        Range reportRange = new Range(new Date(now.getTime() - 3600 * 1000), now);
+    public void doGet(HttpServletRequest req, HttpServletResponse response) {
         try {
-            JAXBContext ctx = JAXBContext.newInstance("org.lex.perf.report");
-            Unmarshaller unmarshaller = ctx.createUnmarshaller();
-            JAXBElement<Report> res = (JAXBElement<Report>) unmarshaller.unmarshal(this.getClass().getClassLoader().getResource("defaultReport.xml"));
-            Report report = res.getValue();
-            StringBuilder htmlReport = new StringBuilder();
-            htmlReport.append("<html><body>");
-            for (ReportItemType reportItem : report.getGraphOrTable()) {
-                if (reportItem instanceof GraphItemType) {
-                    buildGraph(reportRange, (GraphItemType) reportItem, htmlReport);
-                }
-                if (reportItem instanceof TableItemType) {
-                    buildTable(reportRange, (TableItemType) reportItem, htmlReport);
-                }
-                htmlReport.append("</br>");
-            }
+            StringBuilder htmlReport = getHtmlReport();
 
-            htmlReport.append("</body></html>");
-            resp.setStatus(HttpServletResponse.SC_OK);
-            OutputStream os = resp.getOutputStream();
+            response.setStatus(HttpServletResponse.SC_OK);
+            OutputStream os = response.getOutputStream();
 
             os.write(htmlReport.toString().getBytes());
             os.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    private StringBuilder getHtmlReport() throws JAXBException {
+        Date now = new Date();
+        Range reportRange = new Range(new Date(now.getTime() - 3600 * 1000), now);
+        JAXBContext ctx = JAXBContext.newInstance("org.lex.perf.report");
+        Unmarshaller unmarshaller = ctx.createUnmarshaller();
+        JAXBElement<Report> res = (JAXBElement<Report>) unmarshaller.unmarshal(this.getClass().getClassLoader().getResource("defaultReport.xml"));
+        Report report = res.getValue();
+        StringBuilder htmlReport = new StringBuilder();
+        htmlReport.append("<html>");
+        htmlReport.append("<body>");
+
+        StringBuilder data = getDataPart(reportRange, report);
+
+        htmlReport.append(data);
+        htmlReport.append("</body>");
+        htmlReport.append("</html>");
+        return htmlReport;
+    }
+
+    private StringBuilder getDataPart(Range reportRange, Report report) {
+        StringBuilder data = new StringBuilder();
+        for (ReportItemType reportItem : report.getGraphOrTable()) {
+            if (reportItem instanceof GraphItemType) {
+                buildGraph(reportRange, (GraphItemType) reportItem, data);
+            }
+            if (reportItem instanceof TableItemType) {
+                buildTable(reportRange, (TableItemType) reportItem, data);
+            }
+            data.append("</br>");
+        }
+        return data;
     }
 
     private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
@@ -140,7 +137,7 @@ public class HTTPReport extends HttpServlet {
         htmlReport.append("</THEAD>");
         htmlReport.append("<TBODY>");
 
-        List<Index> indexes = Engine.engine.getIndexes(category);
+        java.util.List<Index> indexes = Engine.engine.getIndexes(category);
         for (Index index : indexes) {
             int slotDuration = index.getSlotDuration();
             long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
@@ -208,4 +205,5 @@ public class HTTPReport extends HttpServlet {
         htmlReport.append("</TABLE>");
 
     }
+
 }

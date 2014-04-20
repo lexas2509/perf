@@ -13,6 +13,8 @@ public class MonitoringCategory {
 
     public static final MonitoringCategory HTTP = new MonitoringCategory("HTTP", CategoryType.COUNTER);
 
+    public static final MonitoringCategory SQL = new MonitoringCategory("SQL", CategoryType.COUNTER);
+
 
     private final String name;
 

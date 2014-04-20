@@ -6,12 +6,12 @@
 
     <servlet>
         <servlet-name>report</servlet-name>
-        <servlet-class>org.lex.perf.web.HTTPReport</servlet-class>
+        <servlet-class>org.lex.perf.web.HTTPReportServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>report</servlet-name>
-        <url-pattern>/report</url-pattern>
+        <url-pattern>/report/*</url-pattern>
     </servlet-mapping>
 
     <filter>

@@ -22,8 +22,9 @@ public class HTTPFilter implements Filter {
             try {
                 chain.doFilter(request, response);
             } finally {
-                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), System.nanoTime() - start);
-                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, "response", System.currentTimeMillis(), System.nanoTime() - start);
+                long duration = System.nanoTime() - start;
+                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), duration);
+                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, "response", System.currentTimeMillis(), duration);
 
             }
 

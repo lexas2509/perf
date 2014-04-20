@@ -57,7 +57,7 @@ public class Engine {
     public void putEvent(MonitoringEvent event) {
         Counter counter = (Counter) (engine.getIndex(event.category, event.item));
         CounterTimeSlot timeSlot = counter.getTimeSlot(event.eventTime);
-        timeSlot.addHit(event.duration);
+        timeSlot.addHit(event.duration / 1000 / 1000);
     }
 
     private final Map<MonitoringCategory, Map<String, Index>> indexes = new ConcurrentHashMap<MonitoringCategory, Map<String, Index>>();

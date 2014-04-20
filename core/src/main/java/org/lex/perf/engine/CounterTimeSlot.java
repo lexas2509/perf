@@ -28,7 +28,7 @@ public class CounterTimeSlot extends TimeSlot {
 
         // Переведем в ms
 
-        time = time / 1000/ 1000;
+        time = time;
         int w = CNT / 2;
         int pos = CNT / 2;
         while (w > 1) {

@@ -31,7 +31,7 @@ public class Counter extends Index<CounterTimeSlot> {
             rrdDef.setStep(1);
             rrdDef.addArchive(ConsolFun.TOTAL, 0.5, step, Engine.HOUR / step); // per slot for hour
             rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.MINUTE, Engine.DAY / Engine.MINUTE); // per minute for day
-            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.HOUR, Engine.WEEK / Engine.DAY); // per hour for day
+            rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.HOUR, Engine.WEEK / Engine.DAY); // per hour for week
             rrdDb = new RrdDb(rrdDef);
             rrdDb.close();
             rrdDb = new RrdDb(rrdDef);
