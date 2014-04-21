@@ -32,7 +32,24 @@ public class PerformanceReport implements HttpItem {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse response) {
         try {
-            StringBuilder htmlReport = getHtmlReport();
+            Date startDate;
+            Date endDate;
+            try {
+                if (req.getParameterMap().containsKey("start") && req.getParameterMap().containsKey("end")) {
+                    long start = Long.parseLong(req.getParameter("start"));
+                    long end = Long.parseLong(req.getParameter("end"));
+                    startDate = new Date(start * 1000);
+                    endDate = new Date(end * 1000);
+                } else {
+                    throw new RuntimeException("skip");
+                }
+            } catch (Exception e) {
+                long currentTime = System.currentTimeMillis();
+                currentTime = currentTime - currentTime % 1000; // align to second
+                startDate = new Date(currentTime - 1 * 60 * 60 * 1000);
+                endDate = new Date(currentTime);
+            }
+            StringBuilder htmlReport = getHtmlReport(startDate, endDate);
 
             response.setStatus(HttpServletResponse.SC_OK);
             OutputStream os = response.getOutputStream();
@@ -45,9 +62,8 @@ public class PerformanceReport implements HttpItem {
     }
 
 
-    private StringBuilder getHtmlReport() throws JAXBException {
-        Date now = new Date();
-        Range reportRange = new Range(new Date(now.getTime() - 3600 * 1000), now);
+    private StringBuilder getHtmlReport(Date startDate, Date endDate) throws JAXBException {
+        Range reportRange = new Range(startDate, endDate);
         JAXBContext ctx = JAXBContext.newInstance("org.lex.perf.report");
         Unmarshaller unmarshaller = ctx.createUnmarshaller();
         JAXBElement<Report> res = (JAXBElement<Report>) unmarshaller.unmarshal(this.getClass().getClassLoader().getResource("defaultReport.xml"));

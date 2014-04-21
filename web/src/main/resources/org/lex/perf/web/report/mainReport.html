@@ -8,63 +8,57 @@
     <script src="js/jquery-ui.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript">
+        var start = 0;
+        var end = 0;
+
         function refreshSlider() {
-            start = $("#slider-range").slider("values", 0)
-            end = $("#slider-range").slider("values", 1)
-            currentTime = parseInt($("#currentTime").val(), 10)
-
-            startDate = new Date(currentTime + start * 1000 * 60)
-            endDate = new Date(currentTime + end)
-            $("#amount").val(startDate.toISOString() + " - " + endDate.toISOString());
-            $("#start").val(start)
-            $("#end").val(end)
+            startDate = new Date(start * 1000 * 60)
+            endDate = new Date(end * 1000 * 60)
+            jQuery("#amount").val(startDate.toISOString() + " - " + endDate.toISOString());
         }
-    </script>
-
-    <script type="text/javascript">
-        $(function () {
-            $("#slider-range").slider({
-                range: true,
-                min: -24 * 60,
-                max: 0,
-                values: [ -60, 0],
-                slide: function (event, ui) {
-                    refreshSlider()
-                }
-            });
-        });
-    </script>
-    <script type="text/javascript">
 
         function SendRequest() {
-            start = $("#start").val();
-            end = $("#end").val();
-            $.ajax({
+            jQuery.ajax({
                 url: "report.html",
-                data: {start: start, end: end},
+                data: {start: Math.floor(start * 60), end: Math.floor(end * 60)},
                 cache: false,
                 success: function (html) {
-                    $("#dataReport").html(html);
+                    jQuery("#dataReport").html(html);
                 }
             });
         }
-    </script>
-    <script type="text/javascript">
 
         function refreshCurrentTime() {
-            $.ajax({
+            jQuery.ajax({
                 url: "currentTime",
                 cache: false,
                 success: function (html) {
-                    $("#currentTime").val(html);
+                    currentTimeInSec = parseInt(html, 10);
+
+                    currentTimeInMin = Math.floor(currentTimeInSec / 60);
+                    jQuery("#slider-range").slider({
+                        range: true,
+                        min: currentTimeInMin - 24 * 60,
+                        max: currentTimeInMin,
+                        slide: function (event, ui) {
+                            start = jQuery("#slider-range").slider("values", 0);
+                            end = jQuery("#slider-range").slider("values", 1);
+                            refreshSlider()
+                        }
+                    });
+
+                    if (start == 0) {
+                        start = currentTimeInMin - 60;
+                        end = currentTimeInMin
+                    }
+                    jQuery("#slider-range").slider("values", [start, end]);
                     refreshSlider()
                 }
             });
         }
-        </script>
-    <script  type="text/javascript">
+
         function onLoad() {
-            setInterval(refreshCurrentTime, 1000)
+            setInterval(refreshCurrentTime, 1000)   // start refresh data each second
         }
 
     </script>
@@ -74,11 +68,8 @@
 
 <p>
     <label for="amount">Price range:</label>
-    <input type="text" id="amount" style="border:0; color:#f6931f; font-weight:bold;" size="100" >
+    <input type="text" id="amount" style="border:0; color:#f6931f; font-weight:bold;" size="100">
     </br>
-    <input type="hidden" id="start">
-    <input type="hidden" id="end">
-    <input type="hidden" id="currentTime">
     <button onclick="SendRequest();">Послать запрос</button>
 </p>
 

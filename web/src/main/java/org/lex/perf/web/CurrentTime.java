@@ -12,7 +12,7 @@ public class CurrentTime extends ResourceHttpItem {
 
     @Override
     protected InputStream getContent() {
-        long time = System.currentTimeMillis();
+        long time = System.currentTimeMillis() / 1000;
         String content = Long.toString(time);
         return new ByteArrayInputStream(content.getBytes(UTF8));
     }
