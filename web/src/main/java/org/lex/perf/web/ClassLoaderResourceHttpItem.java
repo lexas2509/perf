@@ -5,9 +5,7 @@ import java.io.InputStream;
 /**
  */
 public class ClassLoaderResourceHttpItem extends ResourceHttpItem {
-
     protected final String resource;
-
 
     public ClassLoader classLoader;
 

@@ -1,4 +1,6 @@
-package org.lex.perf.web;
+package org.lex.perf.report;
+
+import org.lex.perf.web.ResourceHttpItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

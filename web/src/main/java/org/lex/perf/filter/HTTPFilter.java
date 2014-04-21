@@ -1,4 +1,4 @@
-package org.lex.perf.web;
+package org.lex.perf.filter;
 
 import org.lex.perf.event.MonitoringCategory;
 import org.lex.perf.event.MonitoringEvent;
@@ -23,8 +23,8 @@ public class HTTPFilter implements Filter {
                 chain.doFilter(request, response);
             } finally {
                 long duration = System.nanoTime() - start;
-                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getContextPath(), System.currentTimeMillis(), duration);
-                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, "response", System.currentTimeMillis(), duration);
+                MonitoringEvent.sendDurationItem(MonitoringCategory.HTTP, ((HttpServletRequest) request).getRequestURI(), System.currentTimeMillis(), duration);
+                MonitoringEvent.sendDurationItem(MonitoringCategory.GLOBAL, "http", System.currentTimeMillis(), duration);
 
             }
 

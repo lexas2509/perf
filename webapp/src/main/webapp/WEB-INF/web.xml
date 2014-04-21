@@ -6,7 +6,7 @@
 
     <servlet>
         <servlet-name>report</servlet-name>
-        <servlet-class>org.lex.perf.web.HTTPReportServlet</servlet-class>
+        <servlet-class>org.lex.perf.report.HTTPReportServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -16,7 +16,7 @@
 
     <filter>
         <filter-name>httpMonitoring</filter-name>
-        <filter-class>org.lex.perf.web.HTTPFilter</filter-class>
+        <filter-class>org.lex.perf.filter.HTTPFilter</filter-class>
     </filter>
 
     <filter-mapping>

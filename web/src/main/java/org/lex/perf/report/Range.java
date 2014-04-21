@@ -1,4 +1,4 @@
-package org.lex.perf.web;
+package org.lex.perf.report;
 
 import java.util.Date;
 

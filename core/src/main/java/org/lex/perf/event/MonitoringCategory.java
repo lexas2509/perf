@@ -13,6 +13,8 @@ public class MonitoringCategory {
 
     public static final MonitoringCategory HTTP = new MonitoringCategory("HTTP", CategoryType.COUNTER);
 
+    public static final MonitoringCategory GLOBAL = new MonitoringCategory("GLOBAL", CategoryType.COUNTER);
+
     public static final MonitoringCategory SQL = new MonitoringCategory("SQL", CategoryType.COUNTER);
 
 

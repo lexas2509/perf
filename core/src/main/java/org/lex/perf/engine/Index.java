@@ -109,7 +109,7 @@ public abstract class Index<T extends TimeSlot> {
     }
 
     public String getIndexName() {
-        return category.getName() + "-" + itemName;
+        return itemName;
     }
 
     public void doSample(long currentTime) {

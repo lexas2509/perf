@@ -1,12 +1,9 @@
-package org.lex.perf.web;
+package org.lex.perf.report;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.lex.perf.engine.*;
 import org.lex.perf.event.MonitoringCategory;
-import org.lex.perf.report.GraphItemType;
-import org.lex.perf.report.Report;
-import org.lex.perf.report.ReportItemType;
-import org.lex.perf.report.TableItemType;
+import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
 import org.rrd4j.graph.RrdGraph;
@@ -136,7 +133,7 @@ public class PerformanceReport implements HttpItem {
 
     private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
         MonitoringCategory category = MonitoringCategory.get(reportItem.getCategory());
-
+        htmlReport.append("<label>" + category.getName() + "</label>");
         htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
         htmlReport.append("<THEAD>");
         htmlReport.append("<TR>");

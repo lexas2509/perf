@@ -1,4 +1,8 @@
-package org.lex.perf.web;
+package org.lex.perf.report;
+
+import org.lex.perf.web.ClassLoaderResourceHttpItem;
+import org.lex.perf.web.HTTPServlet;
+import org.lex.perf.web.RedirectHttpItem;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
