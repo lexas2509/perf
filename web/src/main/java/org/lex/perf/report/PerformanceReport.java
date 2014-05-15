@@ -18,7 +18,7 @@ import javax.xml.bind.Unmarshaller;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Date;
 
 /**
  * User: lexas
@@ -99,7 +99,7 @@ public class PerformanceReport implements HttpItem {
         switch (category.getCategoryType()) {
             case COUNTER:
                 Counter counter = (Counter) index;
-                graphDef.datasource("hits", "e:/mondata/" + counter.getFileName() + ".rrd", "hits", ConsolFun.TOTAL);
+                graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
                 //graphDef.datasource("value", "e:/mondata/" + counter.getFileName() + ".rrd", "value", ConsolFun.TOTAL);
                 //graphDef.datasource("average", "value,hits,/");
                 graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
@@ -107,9 +107,9 @@ public class PerformanceReport implements HttpItem {
                 break;
             case GAUGE:
                 Gauge gauge = (Gauge) index;
-                graphDef.datasource("value", "e:/mondata/" + gauge.getFileName() + ".rrd", "value", ConsolFun.AVERAGE);
-                graphDef.datasource("minvalue", "e:/mondata/" + gauge.getFileName() + ".rrd", "value", ConsolFun.MIN);
-                graphDef.datasource("maxvalue", "e:/mondata/" + gauge.getFileName() + ".rrd", "value", ConsolFun.MAX);
+                graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
+                graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
+                graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
                 graphDef.line("maxvalue", new Color(255, 6, 25), gauge.getIndexName(), 1);
                 graphDef.area("minvalue", new Color(1, 5, 255), gauge.getIndexName());
                 graphDef.area("value", new Color(8, 255, 6), gauge.getIndexName());
@@ -160,11 +160,11 @@ public class PerformanceReport implements HttpItem {
             switch (category.getCategoryType()) {
                 case COUNTER:
                     Counter counter = (Counter) index;
-                    dp.addDatasource("hits", "e:/mondata/" + counter.getFileName() + ".rrd", "hits", ConsolFun.TOTAL);
-                    dp.addDatasource("total", "e:/mondata/" + counter.getFileName() + ".rrd", "total", ConsolFun.TOTAL);
+                    dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                    dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
 
                     for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
-                        dp.addDatasource("hits" + Integer.toString(i), "e:/mondata/" + counter.getFileName() + ".rrd", "hits" + Integer.toString(i), ConsolFun.TOTAL);
+                        dp.addDatasource("hits" + Integer.toString(i), counter.getFileName(), "hits" + Integer.toString(i), ConsolFun.TOTAL);
                     }
                     double hits = 0;
                     double total = 0;

@@ -1,5 +1,8 @@
 package org.lex.perf.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,6 +17,8 @@ import java.util.Map;
  */
 public class HTTPServlet extends HttpServlet {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPServlet.class);
+
     protected String path;
 
     protected Map<String, HttpItem> httpItems = new HashMap<String, HttpItem>();
@@ -24,7 +29,7 @@ public class HTTPServlet extends HttpServlet {
         path = config.getServletContext().getContextPath() + "/" + config.getServletName();
     }
 
-        @Override
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String queryString = req.getRequestURI();
@@ -40,6 +45,7 @@ public class HTTPServlet extends HttpServlet {
                 sendNotFound(resp);
             }
         } catch (Exception e) {
+            LOGGER.error("", e);
             throw new RuntimeException(e);
         }
     }

@@ -1,5 +1,6 @@
 package org.lex.perf.engine;
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.lex.perf.event.MonitoringCategory;
 import org.lex.perf.event.MonitoringEvent;
 import org.lex.perf.event.MonitoringValue;
@@ -7,6 +8,7 @@ import org.lex.perf.sensor.SensorEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,15 +30,17 @@ public class Engine {
 
     public static final int WEEK = 7 * DAY;
 
-    private Timer timer = new Timer();
+    private Timer timer = new Timer(); // Timer to gather samples from index
+
+    private String workingDirectory = "e:/mondata/";
 
     static {
         engine = new Engine();
         new SensorEngine();
     }
 
-
     public Engine() {
+        // start timer
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -52,6 +56,42 @@ public class Engine {
                 }
             }
         }, SAMPLE_DURATION - 1, SAMPLE_DURATION); // 10 sec
+
+        //load indexes from disk
+        File[] files = new File(workingDirectory).listFiles();
+        for (File file : files) {
+            String[] names = file.getName().split("-");
+
+            if (names.length != 2) {
+                continue;
+            }
+
+            MonitoringCategory monitoringCategory = MonitoringCategory.get(names[0]);
+            if (monitoringCategory == null) {
+                continue;
+            }
+
+            int idx = names[1].indexOf(".rrd");
+            if (idx == -1) {
+                continue;
+            }
+
+            String indexName = names[1].substring(0, idx);
+            indexName = decodeIndexName(indexName);
+            getIndex(monitoringCategory, indexName);
+        }
+    }
+
+    public static String encodeIndexName(String indexName) {
+        String encode = Base64.encode(indexName.getBytes(Const.UTF8));
+        encode = encode.replaceAll("==", "--");
+        return encode;
+    }
+
+    public static String decodeIndexName(String fileName) {
+        String partFileName = fileName.replaceAll("--", "==");
+        String indexName = new String(Base64.decode(partFileName), Const.UTF8);
+        return indexName;
     }
 
     public void putEvent(MonitoringEvent event) {
@@ -62,25 +102,25 @@ public class Engine {
 
     private final Map<MonitoringCategory, Map<String, Index>> indexes = new ConcurrentHashMap<MonitoringCategory, Map<String, Index>>();
 
-    public Index getIndex(MonitoringCategory category, String item) {
+    public Index getIndex(MonitoringCategory category, String indexName) {
         Map<String, Index> categoryIndexes = indexes.get(category);
         if (categoryIndexes == null) {
             categoryIndexes = new ConcurrentHashMap<String, Index>();
             indexes.put(category, categoryIndexes);
         }
-        Index result = categoryIndexes.get(item);
+        Index result = categoryIndexes.get(indexName);
         if (result == null) {
             switch (category.getCategoryType()) {
                 case GAUGE:
-                    result = new Gauge(category, item);
+                    result = new Gauge(this, category, indexName);
                     break;
                 case COUNTER:
-                    result = new Counter(category, item);
+                    result = new Counter(this, category, indexName);
                     break;
                 default:
                     break;
             }
-            categoryIndexes.put(item, result);
+            categoryIndexes.put(indexName, result);
         }
         return result;
     }
@@ -94,5 +134,9 @@ public class Engine {
 
     public List<Index> getIndexes(MonitoringCategory category) {
         return new ArrayList<Index>(indexes.get(category).values());
+    }
+
+    public Object getWorkingDirectory() {
+        return workingDirectory;
     }
 }

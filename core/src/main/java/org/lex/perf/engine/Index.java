@@ -2,14 +2,16 @@ package org.lex.perf.engine;
 
 import org.lex.perf.event.MonitoringCategory;
 import org.rrd4j.core.RrdDb;
+import org.rrd4j.core.RrdDef;
 import org.rrd4j.core.Sample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.DatatypeConverter;
+import java.io.File;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.*;
+import java.util.Map;
+import java.util.Queue;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -25,11 +27,13 @@ public abstract class Index<T extends TimeSlot> {
 
     private AtomicReferenceArray<T> timeSlots = new AtomicReferenceArray<T>(NUM_OF_SLOT);
 
+    private final Engine engine;
+
     protected RrdDb rrdDb;
 
     protected final MonitoringCategory category;
 
-    protected final String itemName;
+    protected final String indexName;
 
     protected final String fileName;
 
@@ -37,18 +41,37 @@ public abstract class Index<T extends TimeSlot> {
 
     protected AtomicLong sampleTime = new AtomicLong();
 
-    public Index(MonitoringCategory category, String name) {
+    public Index(Engine engine, MonitoringCategory category, String name) {
+        this.engine = engine;
         this.category = category;
-        this.itemName = name;
+        this.indexName = name;
+        fileName = engine.getWorkingDirectory() + "/" + Engine.encodeIndexName(indexName) + ".rrd";
+        sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
+
         try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] bn = md.digest(name.getBytes("UTF-8"));
-            String n = DatatypeConverter.printHexBinary(bn);
-            fileName = category.getName() + n;
+            RrdDef rrdDef = getRrdDef();
+            if (new File(getFileName()).exists()) {
+                try {
+                    rrdDb = new RrdDb(getFileName(), false);
+                } catch (RuntimeException e) {
+                    rrdDb = null;
+                }
+            }
+            if (rrdDb == null) {
+                rrdDb = new RrdDb(rrdDef);
+                rrdDb.close();
+                rrdDb = new RrdDb(rrdDef);
+            }
+        } catch (IOException ioException) {
+            throw new RuntimeException(ioException);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
+
+    }
+
+    protected RrdDef getRrdDef() {
+        throw new RuntimeException("Not implemented");
     }
 
     public T getTimeSlot(long eventTime) {
@@ -76,7 +99,7 @@ public abstract class Index<T extends TimeSlot> {
         }
 
         if (eventTime < timeSlot.getStartTime()) {
-            LOGGER.error("Skip event {} for index {}", eventTime, itemName);
+            LOGGER.error("Skip event {} for index {}", eventTime, indexName);
             return null;
         }
 
@@ -91,7 +114,7 @@ public abstract class Index<T extends TimeSlot> {
             long currentTime = timeSlot.getEndTime() / 1000;
             sample = rrdDb.createSample();
             sample.setTime(currentTime);
-//            LOGGER.warn(itemName + ":" + Long.toString(sample.getTime()));
+//            LOGGER.warn(indexName + ":" + Long.toString(sample.getTime()));
             timeSlot.storeData(sample);
             if (rrdDb.getLastUpdateTime() >= currentTime) {
                 new Object();
@@ -109,7 +132,7 @@ public abstract class Index<T extends TimeSlot> {
     }
 
     public String getIndexName() {
-        return itemName;
+        return indexName;
     }
 
     public void doSample(long currentTime) {
@@ -134,7 +157,7 @@ public abstract class Index<T extends TimeSlot> {
             T slot = timeSlots.get(n);
             if (slot == null) {
                 slot = createTimeSlot(time);
-                LOGGER.warn("dummy timeslot created {} ", slot.getStartTime()/1000);
+                LOGGER.warn("dummy timeslot created {} ", slot.getStartTime() / 1000);
             } else {
                 if (!timeSlots.compareAndSet(n, slot, null)) {
                     new Object();
