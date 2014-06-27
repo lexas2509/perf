@@ -1,7 +1,8 @@
 package org.lex.perf.engine;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
+import org.lex.perf.api.MonitorFactory;
 import org.lex.perf.event.MonitoringEvent;
 import org.lex.perf.event.MonitoringValue;
 import org.lex.perf.sensor.SensorEngine;
@@ -66,7 +67,7 @@ public class Engine {
                 continue;
             }
 
-            MonitoringCategory monitoringCategory = MonitoringCategory.get(names[0]);
+            MonitorCategory monitoringCategory = MonitorFactory.getMonitorCategory(names[0]);
             if (monitoringCategory == null) {
                 continue;
             }
@@ -100,9 +101,9 @@ public class Engine {
         timeSlot.addHit(event.duration / 1000 / 1000);
     }
 
-    private final Map<MonitoringCategory, Map<String, Index>> indexes = new ConcurrentHashMap<MonitoringCategory, Map<String, Index>>();
+    private final Map<MonitorCategory, Map<String, Index>> indexes = new ConcurrentHashMap<MonitorCategory, Map<String, Index>>();
 
-    public Index getIndex(MonitoringCategory category, String indexName) {
+    public Index getIndex(MonitorCategory category, String indexName) {
         Map<String, Index> categoryIndexes = indexes.get(category);
         if (categoryIndexes == null) {
             categoryIndexes = new ConcurrentHashMap<String, Index>();
@@ -132,7 +133,7 @@ public class Engine {
         timeSlot.setValue(event.value);
     }
 
-    public List<Index> getIndexes(MonitoringCategory category) {
+    public List<Index> getIndexes(MonitorCategory category) {
         return new ArrayList<Index>(indexes.get(category).values());
     }
 

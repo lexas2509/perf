@@ -1,11 +1,10 @@
 package org.lex.perf.sensor;
 
 
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
+import org.lex.perf.common.StandardCategory;
 
-import java.io.Serializable;
 import java.lang.management.*;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +13,8 @@ import java.util.Map;
 public class HeapSensor implements Sensor {
 
     @Override
-    public MonitoringCategory getCategory() {
-        return MonitoringCategory.JVM;
+    public MonitorCategory getCategory() {
+        return StandardCategory.JVM;
     }
 
     public Map<String, Double> getValues() {

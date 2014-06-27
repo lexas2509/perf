@@ -1,4 +1,4 @@
-package org.lex.perf.event;
+package org.lex.perf.api;
 
 /**
  */

@@ -1,7 +1,8 @@
 package org.lex.perf.sensor;
 
 
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
+import org.lex.perf.common.StandardCategory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -24,12 +25,12 @@ public class CPUSensor implements Sensor {
     }
 
     @Override
-    public MonitoringCategory getCategory() {
-        return MonitoringCategory.JVM;
+    public MonitorCategory getCategory() {
+        return StandardCategory.JVM;
     }
 
     @Override
     public String[] getItems() {
-        return new String[] {"CPU"};
+        return new String[]{"CPU"};
     }
 }

@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
 import org.rrd4j.core.RrdDb;
 import org.rrd4j.core.RrdDef;
 import org.rrd4j.core.Sample;
@@ -31,7 +31,7 @@ public abstract class Index<T extends TimeSlot> {
 
     protected RrdDb rrdDb;
 
-    protected final MonitoringCategory category;
+    protected final MonitorCategory category;
 
     protected final String indexName;
 
@@ -41,7 +41,7 @@ public abstract class Index<T extends TimeSlot> {
 
     protected AtomicLong sampleTime = new AtomicLong();
 
-    public Index(Engine engine, MonitoringCategory category, String name) {
+    public Index(Engine engine, MonitorCategory category, String name) {
         this.engine = engine;
         this.category = category;
         this.indexName = name;

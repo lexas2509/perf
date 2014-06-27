@@ -1,8 +1,9 @@
 package org.lex.perf.report;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.lex.perf.api.MonitorCategory;
+import org.lex.perf.api.MonitorFactory;
 import org.lex.perf.engine.*;
-import org.lex.perf.event.MonitoringCategory;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
@@ -94,7 +95,7 @@ public class PerformanceReport implements HttpItem {
     private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
         RrdGraphDef graphDef = new RrdGraphDef();
         graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
-        MonitoringCategory category = MonitoringCategory.get(graphItem.getCategory());
+        MonitorCategory category = MonitorFactory.getMonitorCategory(graphItem.getCategory());
         Index index = Engine.engine.getIndex(category, graphItem.getItem());
         switch (category.getCategoryType()) {
             case COUNTER:
@@ -132,7 +133,7 @@ public class PerformanceReport implements HttpItem {
     }
 
     private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
-        MonitoringCategory category = MonitoringCategory.get(reportItem.getCategory());
+        MonitorCategory category = MonitorFactory.getMonitorCategory(reportItem.getCategory());
         htmlReport.append("<label>" + category.getName() + "</label>");
         htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
         htmlReport.append("<THEAD>");

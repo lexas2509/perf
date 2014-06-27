@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.RrdDef;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Counter extends Index<CounterTimeSlot> {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Counter.class);
 
-    public Counter(Engine engine, MonitoringCategory category, String name) {
+    public Counter(Engine engine, MonitorCategory category, String name) {
         super(engine, category, name);
     }
 

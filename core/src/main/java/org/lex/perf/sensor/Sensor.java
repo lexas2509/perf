@@ -1,6 +1,6 @@
 package org.lex.perf.sensor;
 
-import org.lex.perf.event.MonitoringCategory;
+import org.lex.perf.api.MonitorCategory;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import java.util.Map;
 public interface Sensor {
     Map<String, Double> getValues();
 
-    MonitoringCategory getCategory();
+    MonitorCategory getCategory();
 
     String[] getItems();
 }

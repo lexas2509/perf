@@ -36,10 +36,10 @@
                     <verbose>true</verbose>
                     <extension>true</extension>
                     <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-<!--                    <bindingDirectory>src/main/resources/com/bssys/sbns/integration/jaxb</bindingDirectory>
-                    <bindingIncludes>
-                        <include>bindings.xjb</include>
-                    </bindingIncludes> -->
+                    <!--                    <bindingDirectory>src/main/resources/com/bssys/sbns/integration/jaxb</bindingDirectory>
+                                        <bindingIncludes>
+                                            <include>bindings.xjb</include>
+                                        </bindingIncludes> -->
                 </configuration>
                 <executions>
                     <execution>
@@ -64,6 +64,10 @@
 
     <dependencies>
         <!-- logging -->
+        <dependency>
+            <groupId>org.lex.perf</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
