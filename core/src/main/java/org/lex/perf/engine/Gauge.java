@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.MonitorCategory;
+import org.lex.perf.api.factory.IndexSeries;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.RrdDef;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Gauge extends Index<GaugeTimeSlot> {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Gauge.class);
 
-    public Gauge(Engine engine, MonitorCategory category, String name) {
+    public Gauge(Engine engine, IndexSeries category, String name) {
         super(engine, category, name);
     }
 

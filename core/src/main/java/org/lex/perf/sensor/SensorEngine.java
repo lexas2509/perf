@@ -1,42 +1,49 @@
 package org.lex.perf.sensor;
 
-import org.lex.perf.event.MonitoringValue;
+import org.lex.perf.api.index.GaugeIndex;
+import org.lex.perf.engine.event.MonitoringValue;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  */
 public class SensorEngine {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SensorEngine.class);
+    public static final int SECOND = 1000;
 
-    private final List<Sensor> sensors = new ArrayList<Sensor>();
+    private final List<GaugeIndex> gauges = new ArrayList<GaugeIndex>();
 
     private Timer sensorTime = new Timer();
 
     public SensorEngine() {
-        sensors.add(new CPUSensor());
-        sensors.add(new HeapSensor());
-
         sensorTime.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
-                for (Sensor sensor : sensors) {
-                    Map<String, Double> sensorData = sensor.getValues();
-                    String[] sensorItems = sensor.getItems();
-                    long eventTime = System.currentTimeMillis();
+                    for (GaugeIndex sensor : gauges) {
+                        BigDecimal[] sensorData = sensor.getValues();
+                        String[] sensorItems = sensor.getItems();
+                        long eventTime = System.currentTimeMillis();
 
-                    for (String sensorItem : sensorItems) {
-                        MonitoringValue.sendValueItem(sensor.getCategory(), sensorItem, eventTime, sensorData.get(sensorItem));
+                        for (int i = 0; i < sensorItems.length; i++) {
+                            MonitoringValue.sendValueItem(sensor.getIndexSeries(), sensorItems[i], eventTime, sensorData[i].doubleValue());
+                        }
                     }
-                }
                 } catch (Exception e) {
                     LOGGER.error("", e);
                 }
 
             }
-        }, 1000, 10000);
+        }, SECOND, 10 * SECOND);
+    }
+
+    public void addGaugeSensor(GaugeIndex gaugeIndex) {
+        gauges.add(gaugeIndex);
     }
 
 }

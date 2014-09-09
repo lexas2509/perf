@@ -1,8 +1,8 @@
 package org.lex.perf.report;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import org.lex.perf.api.MonitorCategory;
-import org.lex.perf.api.MonitorFactory;
+import org.lex.perf.api.factory.IndexFactory;
+import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.engine.*;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
@@ -95,9 +95,9 @@ public class PerformanceReport implements HttpItem {
     private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
         RrdGraphDef graphDef = new RrdGraphDef();
         graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
-        MonitorCategory category = MonitorFactory.getMonitorCategory(graphItem.getCategory());
+        IndexSeries category = IndexFactory.getIndexSeries(graphItem.getCategory());
         Index index = Engine.engine.getIndex(category, graphItem.getItem());
-        switch (category.getCategoryType()) {
+        switch (category.getIndexType()) {
             case COUNTER:
                 Counter counter = (Counter) index;
                 graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
@@ -133,7 +133,7 @@ public class PerformanceReport implements HttpItem {
     }
 
     private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
-        MonitorCategory category = MonitorFactory.getMonitorCategory(reportItem.getCategory());
+        IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
         htmlReport.append("<label>" + category.getName() + "</label>");
         htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
         htmlReport.append("<THEAD>");
@@ -158,7 +158,7 @@ public class PerformanceReport implements HttpItem {
             long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
             DataProcessor dp = new DataProcessor(startTime, endTime);
             dp.setStep(slotDuration / 1000);
-            switch (category.getCategoryType()) {
+            switch (category.getIndexType()) {
                 case COUNTER:
                     Counter counter = (Counter) index;
                     dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
