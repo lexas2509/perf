@@ -1,6 +1,7 @@
 package org.lex.perf.sensor;
 
 import org.lex.perf.api.index.GaugeIndex;
+import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.engine.event.MonitoringValue;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ public class SensorEngine {
 
     private Timer sensorTime = new Timer();
 
-    public SensorEngine() {
+    public SensorEngine(final EngineImpl engine) {
         sensorTime.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -31,7 +32,12 @@ public class SensorEngine {
                         long eventTime = System.currentTimeMillis();
 
                         for (int i = 0; i < sensorItems.length; i++) {
-                            MonitoringValue.sendValueItem(sensor.getIndexSeries(), sensorItems[i], eventTime, sensorData[i].doubleValue());
+                            MonitoringValue event = new MonitoringValue();
+                            event.category = sensor.getIndexSeries();
+                            event.item = sensorItems[i];
+                            event.eventTime = eventTime;
+                            event.value = sensorData[i].doubleValue();
+                            engine.putSensorValue(event);
                         }
                     }
                 } catch (Exception e) {

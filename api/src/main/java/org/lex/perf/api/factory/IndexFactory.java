@@ -23,7 +23,7 @@ public abstract class IndexFactory {
 
     private static void initFactory() {
         try {
-            Class cl = IndexFactory.class.getClassLoader().loadClass("org.lex.perf.engine.MonitorFactoryImpl");
+            Class cl = IndexFactory.class.getClassLoader().loadClass("org.lex.perf.impl.IndexFactoryImpl");
             try {
                 indexFactory = (IIndexFactory) cl.newInstance();
             } catch (InstantiationException e) {

@@ -3,7 +3,11 @@ package org.lex.perf.report;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.engine.*;
+import org.lex.perf.engine.Counter;
+import org.lex.perf.engine.CounterTimeSlot;
+import org.lex.perf.engine.Gauge;
+import org.lex.perf.engine.Index;
+import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
@@ -96,7 +100,11 @@ public class PerformanceReport implements HttpItem {
         RrdGraphDef graphDef = new RrdGraphDef();
         graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
         IndexSeries category = IndexFactory.getIndexSeries(graphItem.getCategory());
-        Index index = Engine.engine.getIndex(category, graphItem.getItem());
+        if (category == null) {
+            return;
+        }
+        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+        Index index = impl.getEngine().getIndex(category, graphItem.getItem());
         switch (category.getIndexType()) {
             case COUNTER:
                 Counter counter = (Counter) index;
@@ -134,6 +142,9 @@ public class PerformanceReport implements HttpItem {
 
     private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
         IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
+        if (category == null) {
+            return;
+        }
         htmlReport.append("<label>" + category.getName() + "</label>");
         htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
         htmlReport.append("<THEAD>");
@@ -150,8 +161,8 @@ public class PerformanceReport implements HttpItem {
         htmlReport.append("</TR>");
         htmlReport.append("</THEAD>");
         htmlReport.append("<TBODY>");
-
-        java.util.List<Index> indexes = Engine.engine.getIndexes(category);
+        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+        java.util.List<Index> indexes = impl.getEngine().getIndexes(category);
         for (Index index : indexes) {
             int slotDuration = index.getSlotDuration();
             long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;

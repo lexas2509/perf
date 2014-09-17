@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public abstract class Index<T extends TimeSlot> {
     private static final Logger LOGGER = LoggerFactory.getLogger(Index.class);
 
-    protected int slotDuration = Engine.SAMPLE_DURATION; // in ms;
+    protected int slotDuration = EngineImpl.SAMPLE_DURATION; // in ms;
 
     private static final int NUM_OF_SLOT = 6;
 
@@ -41,11 +41,11 @@ public abstract class Index<T extends TimeSlot> {
 
     protected AtomicLong sampleTime = new AtomicLong();
 
-    public Index(Engine engine, IndexSeries category, String name) {
+    public Index(EngineImpl engine, IndexSeries category, String name) {
         this.engine = engine;
         this.category = category;
         this.indexName = name;
-        fileName = engine.getWorkingDirectory() + "/" + Engine.encodeIndexName(indexName) + ".rrd";
+        fileName = engine.getWorkingDirectory() + "/" + EngineImpl.encodeIndexName(indexName) + ".rrd";
         sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
 
         try {

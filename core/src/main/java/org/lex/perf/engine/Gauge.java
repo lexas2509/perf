@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Gauge extends Index<GaugeTimeSlot> {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Gauge.class);
 
-    public Gauge(Engine engine, IndexSeries category, String name) {
+    public Gauge(EngineImpl engine, IndexSeries category, String name) {
         super(engine, category, name);
     }
 

@@ -13,6 +13,10 @@
     <dependencies>
         <dependency>
             <groupId>org.lex.perf</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lex.perf</groupId>
             <artifactId>web</artifactId>
         </dependency>
         <dependency>

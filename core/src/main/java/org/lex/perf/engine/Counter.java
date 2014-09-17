@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Counter extends Index<CounterTimeSlot> {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Counter.class);
 
-    public Counter(Engine engine, IndexSeries category, String name) {
+    public Counter(EngineImpl engine, IndexSeries category, String name) {
         super(engine, category, name);
     }
 
@@ -27,9 +27,9 @@ public class Counter extends Index<CounterTimeSlot> {
         }
 
         rrdDef.setStep(1);
-        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, step, Engine.HOUR / step); // per slot for hour
-        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.MINUTE, Engine.DAY / Engine.MINUTE); // per minute for day
-        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, Engine.HOUR, Engine.WEEK / Engine.DAY); // per hour for week
+        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, step, EngineImpl.HOUR / step); // per slot for hour
+        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, EngineImpl.MINUTE, EngineImpl.DAY / EngineImpl.MINUTE); // per minute for day
+        rrdDef.addArchive(ConsolFun.TOTAL, 0.5, EngineImpl.HOUR, EngineImpl.WEEK / EngineImpl.DAY); // per hour for week
         return rrdDef;
     }
 
