@@ -3,6 +3,7 @@ package org.lex.perf.sensor;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.engine.event.MonitoringValue;
+import org.lex.perf.impl.GaugeIndexImpl;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
@@ -17,7 +18,17 @@ public class SensorEngine {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SensorEngine.class);
     public static final int SECOND = 1000;
 
-    private final List<GaugeIndex> gauges = new ArrayList<GaugeIndex>();
+    private static class GaugeIndexPair {
+        GaugeIndex gaugeIndex;
+        GaugeIndexImpl[] gaugeIndexes;
+
+        public GaugeIndexPair(GaugeIndex gaugeIndex, GaugeIndexImpl[] gaugeImpls) {
+            this.gaugeIndex = gaugeIndex;
+            this.gaugeIndexes = gaugeImpls;
+        }
+    }
+
+    private final List<GaugeIndexPair> gauges = new ArrayList<GaugeIndexPair>();
 
     private Timer sensorTime = new Timer();
 
@@ -26,18 +37,19 @@ public class SensorEngine {
             @Override
             public void run() {
                 try {
-                    for (GaugeIndex sensor : gauges) {
-                        BigDecimal[] sensorData = sensor.getValues();
-                        String[] sensorItems = sensor.getItems();
+                    for (GaugeIndexPair sensor : gauges) {
+                        BigDecimal[] sensorData = sensor.gaugeIndex.getValues();
+                        String[] sensorItems = sensor.gaugeIndex.getItems();
                         long eventTime = System.currentTimeMillis();
 
                         for (int i = 0; i < sensorItems.length; i++) {
                             MonitoringValue event = new MonitoringValue();
-                            event.category = sensor.getIndexSeries();
+                            event.category = sensor.gaugeIndex.getIndexSeries();
                             event.item = sensorItems[i];
                             event.eventTime = eventTime;
                             event.value = sensorData[i].doubleValue();
-                            engine.putSensorValue(event);
+                            GaugeIndexImpl indexImpl = sensor.gaugeIndexes[i];
+                            indexImpl.putSensorValue(event);
                         }
                     }
                 } catch (Exception e) {
@@ -48,8 +60,8 @@ public class SensorEngine {
         }, SECOND, 10 * SECOND);
     }
 
-    public void addGaugeSensor(GaugeIndex gaugeIndex) {
-        gauges.add(gaugeIndex);
+    public void addGaugeSensor(GaugeIndex gaugeIndex, GaugeIndexImpl[] gaugeImpls) {
+        gauges.add(new GaugeIndexPair(gaugeIndex, gaugeImpls));
     }
 
 }

@@ -62,6 +62,7 @@ public abstract class Index<T extends TimeSlot> {
                 rrdDb.close();
                 rrdDb = new RrdDb(rrdDef);
             }
+            engine.addIndex(this);
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
         } catch (Exception e) {

@@ -3,14 +3,14 @@ package org.lex.perf.engine;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.engine.event.MonitoringEvent;
-import org.lex.perf.engine.event.MonitoringValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  */
@@ -40,10 +40,8 @@ public class EngineImpl implements Engine {
             public void run() {
                 try {
                     long currentTime = System.currentTimeMillis();
-                    for (Map<String, Index> entry : indexes.values()) {
-                        for (Index s : entry.values()) {
-                            s.doSample(currentTime);
-                        }
+                    for (Index s : indexes) {
+                        s.doSample(currentTime);
                     }
                 } catch (Throwable t) {
                     LOGGER.error("error ", t);
@@ -73,7 +71,7 @@ public class EngineImpl implements Engine {
 
                 String indexName = names[1].substring(0, idx);
                 indexName = decodeIndexName(indexName);
-                getIndex(monitoringCategory, indexName);
+                IndexFactory.getFactory().getIndex(monitoringCategory, indexName);
             }
         }
     }
@@ -90,14 +88,9 @@ public class EngineImpl implements Engine {
         return indexName;
     }
 
-    public void putEvent(MonitoringEvent event) {
-        Counter counter = (Counter) (getIndex(event.category, event.item));
-        CounterTimeSlot timeSlot = counter.getTimeSlot(event.eventTime);
-        timeSlot.addHit(event.duration / 1000 / 1000);
-    }
+    private final List<Index> indexes = new ArrayList<Index>();
 
-    private final Map<IndexSeries, Map<String, Index>> indexes = new ConcurrentHashMap<IndexSeries, Map<String, Index>>();
-
+    /*
     public Index getIndex(IndexSeries category, String indexName) {
         Map<String, Index> categoryIndexes = indexes.get(category);
         if (categoryIndexes == null) {
@@ -119,24 +112,13 @@ public class EngineImpl implements Engine {
             categoryIndexes.put(indexName, result);
         }
         return result;
-    }
-
-
-    public void putSensorValue(MonitoringValue event) {
-        Gauge gauge = (Gauge) getIndex(event.category, event.item);
-        GaugeTimeSlot timeSlot = gauge.getTimeSlot(event.eventTime);
-        timeSlot.setValue(event.value);
-    }
-
-    public List<Index> getIndexes(IndexSeries category) {
-        Map<String, Index> indexes = this.indexes.get(category);
-        if (indexes == null) {
-            return Collections.emptyList();
-        }
-        return new ArrayList<Index>(indexes.values());
-    }
+    }*/
 
     public Object getWorkingDirectory() {
         return workingDirectory;
+    }
+
+    public void addIndex(Index index) {
+        indexes.add(index);
     }
 }

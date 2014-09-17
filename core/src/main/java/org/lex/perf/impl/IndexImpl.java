@@ -33,4 +33,7 @@ public abstract class IndexImpl implements Index {
     public IndexSeries getIndexSeries() {
         return indexSeries;
     }
+
+    public abstract org.lex.perf.engine.Index getIndex();
+
 }

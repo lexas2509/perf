@@ -8,6 +8,7 @@ import org.lex.perf.engine.CounterTimeSlot;
 import org.lex.perf.engine.Gauge;
 import org.lex.perf.engine.Index;
 import org.lex.perf.impl.IndexFactoryImpl;
+import org.lex.perf.impl.IndexImpl;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
@@ -103,41 +104,46 @@ public class PerformanceReport implements HttpItem {
         if (category == null) {
             return;
         }
+
         IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-        Index index = impl.getEngine().getIndex(category, graphItem.getItem());
-        switch (category.getIndexType()) {
-            case COUNTER:
-                Counter counter = (Counter) index;
-                graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
-                //graphDef.datasource("value", "e:/mondata/" + counter.getFileName() + ".rrd", "value", ConsolFun.TOTAL);
-                //graphDef.datasource("average", "value,hits,/");
-                graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
-                //graphDef.area("average", new Color(0xFF, 0, 0), "average of " + counter.getIndexName());
-                break;
-            case GAUGE:
-                Gauge gauge = (Gauge) index;
-                graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
-                graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
-                graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
-                graphDef.line("maxvalue", new Color(255, 6, 25), gauge.getIndexName(), 1);
-                graphDef.area("minvalue", new Color(1, 5, 255), gauge.getIndexName());
-                graphDef.area("value", new Color(8, 255, 6), gauge.getIndexName());
-                break;
-            default:
-                break;
+        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+        for (org.lex.perf.api.index.Index indexIt : indexes) {
+            Index index = ((IndexImpl) indexIt).getIndex();
+            switch (category.getIndexType()) {
+                case COUNTER:
+                case INSPECTION:
+                    Counter counter = (Counter) index;
+                    graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                    //graphDef.datasource("value", "e:/mondata/" + counter.getFileName() + ".rrd", "value", ConsolFun.TOTAL);
+                    //graphDef.datasource("average", "value,hits,/");
+                    graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
+                    //graphDef.area("average", new Color(0xFF, 0, 0), "average of " + counter.getIndexName());
+                    break;
+                case GAUGE:
+                    Gauge gauge = (Gauge) index;
+                    graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
+                    graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
+                    graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
+                    graphDef.line("maxvalue", new Color(255, 6, 25), gauge.getIndexName(), 1);
+                    graphDef.area("minvalue", new Color(1, 5, 255), gauge.getIndexName());
+                    graphDef.area("value", new Color(8, 255, 6), gauge.getIndexName());
+                    break;
+                default:
+                    break;
+            }
+            graphDef.setHeight(160);
+            graphDef.setWidth(400);
+            graphDef.setFilename("-");
+            RrdGraph graph = null;
+            try {
+                graph = new RrdGraph(graphDef);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            byte[] img = graph.getRrdGraphInfo().getBytes();
+            String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.encode(img) + "\" />";
+            htmlReport.append(reportGraph);
         }
-        graphDef.setHeight(160);
-        graphDef.setWidth(400);
-        graphDef.setFilename("-");
-        RrdGraph graph = null;
-        try {
-            graph = new RrdGraph(graphDef);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        byte[] img = graph.getRrdGraphInfo().getBytes();
-        String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.encode(img) + "\" />";
-        htmlReport.append(reportGraph);
     }
 
     private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
@@ -162,8 +168,9 @@ public class PerformanceReport implements HttpItem {
         htmlReport.append("</THEAD>");
         htmlReport.append("<TBODY>");
         IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-        java.util.List<Index> indexes = impl.getEngine().getIndexes(category);
-        for (Index index : indexes) {
+        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+        for (org.lex.perf.api.index.Index indexIt : indexes) {
+            Index index = ((IndexImpl) indexIt).getIndex();
             int slotDuration = index.getSlotDuration();
             long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
             long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
@@ -171,6 +178,7 @@ public class PerformanceReport implements HttpItem {
             dp.setStep(slotDuration / 1000);
             switch (category.getIndexType()) {
                 case COUNTER:
+                case INSPECTION:
                     Counter counter = (Counter) index;
                     dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
                     dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
