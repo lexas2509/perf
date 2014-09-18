@@ -1,0 +1,8 @@
+<Config xmlns="http://config.perf.lex.org">
+    <DefaultIndexSeries allowCPU="false" allowHistogramm="false">
+        <childIndexSeries name="SQL"/>
+    </DefaultIndexSeries>
+    <IndexSeries name="HTTP" allowCPU="true" allowHistogramm="true">
+        <childIndexSeries name="SQL"/>
+    </IndexSeries>
+</Config>

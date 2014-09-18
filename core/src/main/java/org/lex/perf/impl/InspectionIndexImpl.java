@@ -9,7 +9,7 @@ import java.util.Stack;
 /**
  * Created by Алексей on 17.09.2014.
  */
-class InspectionIndexImpl extends CPUCounterIndexImpl implements InspectionIndex {
+class InspectionIndexImpl extends CounterIndexImpl implements InspectionIndex {
 
     private static class InspectionElement {
         long start;
@@ -43,6 +43,6 @@ class InspectionIndexImpl extends CPUCounterIndexImpl implements InspectionIndex
         long finish = System.nanoTime();
         long duration = finish - c.start;
         long durationCPU = ThreadUtil.getCurrentThreadCpuTime() - c.startCPU;
-        addRequest(System.currentTimeMillis(), duration, durationCPU);
+        addRequest(System.currentTimeMillis(), new long[]{duration, durationCPU});
     }
 }

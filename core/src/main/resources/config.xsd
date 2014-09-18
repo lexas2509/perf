@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://config.perf.lex.org"
+           targetNamespace="http://config.perf.lex.org" elementFormDefault="qualified">
+
+    <xs:element name="Config" type="Config"/>
+    <xs:complexType name="Config">
+        <xs:sequence>
+            <xs:element name="DefaultIndexSeries" type="InspectionIndexSeriesType"/>
+            <xs:sequence maxOccurs="unbounded" minOccurs="0">
+                <xs:choice>
+                    <xs:element name="IndexSeries" type="InspectionIndexSeriesType"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="IndexSeriesType">
+    </xs:complexType>
+    <xs:complexType name="InspectionIndexSeriesType">
+        <xs:complexContent>
+            <xs:extension base="IndexSeriesType">
+                <xs:sequence maxOccurs="unbounded" minOccurs="0">
+                    <xs:element name="childIndexSeries" type="ChildIndexSeriesType"/>
+                </xs:sequence>
+                <xs:attribute name="name"/>
+                <xs:attribute name="allowCPU" type="xs:boolean"/>
+                <xs:attribute name="allowHistogramm" type="xs:boolean"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ChildIndexSeriesType">
+        <xs:attribute name="name"/>
+    </xs:complexType>
+</xs:schema>

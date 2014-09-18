@@ -31,7 +31,7 @@
                     </args>
                     <encoding>UTF-8</encoding>
                     <forceRegenerate>true</forceRegenerate>
-                    <cleanPackageDirectories>true</cleanPackageDirectories>
+                    <cleanPackageDirectories>false</cleanPackageDirectories>
                     <strict>false</strict>
                     <verbose>true</verbose>
                     <extension>true</extension>
@@ -43,7 +43,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>xjc.other</id>
+                        <id>report</id>
                         <phase>generate-sources</phase>
                         <configuration>
                             <episode>false</episode>
@@ -57,6 +57,22 @@
                             <goal>generate</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>config</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <episode>false</episode>
+                            <schemaDirectory>src/main/resources/</schemaDirectory>
+                            <generatePackage>org.lex.perf.config</generatePackage>
+                            <schemaIncludes>
+                                <include>config.xsd</include>
+                            </schemaIncludes>
+                        </configuration>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+
                 </executions>
             </plugin>
         </plugins>

@@ -10,6 +10,7 @@ import org.lex.perf.engine.Index;
 import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.IndexImpl;
 import org.lex.perf.impl.PerfIndexSeriesImpl;
+import org.lex.perf.util.JAXBUtil;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
@@ -18,10 +19,7 @@ import org.rrd4j.graph.RrdGraphDef;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -68,10 +66,9 @@ public class PerformanceReport implements HttpItem {
 
     private StringBuilder getHtmlReport(Date startDate, Date endDate) throws JAXBException {
         Range reportRange = new Range(startDate, endDate);
-        JAXBContext ctx = JAXBContext.newInstance("org.lex.perf.report");
-        Unmarshaller unmarshaller = ctx.createUnmarshaller();
-        JAXBElement<Report> res = (JAXBElement<Report>) unmarshaller.unmarshal(this.getClass().getClassLoader().getResource("defaultReport.xml"));
-        Report report = res.getValue();
+        String contextPath = "org.lex.perf.report";
+        String name = "defaultReport.xml";
+        Report report = JAXBUtil.getObject(contextPath, name);
         StringBuilder htmlReport = new StringBuilder();
         htmlReport.append("<html>");
         htmlReport.append("<body>");
@@ -267,11 +264,12 @@ public class PerformanceReport implements HttpItem {
             htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
         }
 
-        for (IndexSeries ix : indexSeries.getChildSeries()) {
+        for (String ixName : indexSeries.getChildSeries()) {
             htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
             htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
             htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
-            if ((ix instanceof PerfIndexSeriesImpl) && ((PerfIndexSeriesImpl) ix).isSupportCPU()) {
+            PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
+            if (ix.isSupportCPU()) {
                 htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
                 htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
             }

@@ -1,4 +1,4 @@
-<Report xmlns="http://perf.lex.org">
+<Report xmlns="http://report.perf.lex.org">
     <Graph category="JVM" item="CPU"/>
     <Graph category="JVM" item="Heap"/>
     <Graph category="GLOBAL" item="http"/>

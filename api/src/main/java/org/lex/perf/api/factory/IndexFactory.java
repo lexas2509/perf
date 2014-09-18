@@ -2,6 +2,8 @@ package org.lex.perf.api.factory;
 
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public abstract class IndexFactory {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(IndexFactory.class);
 
     private static IIndexFactory indexFactory;
 
@@ -22,17 +26,13 @@ public abstract class IndexFactory {
     }
 
     private static void initFactory() {
+        Class cl;
         try {
-            Class cl = IndexFactory.class.getClassLoader().loadClass("org.lex.perf.impl.IndexFactoryImpl");
-            try {
-                indexFactory = (IIndexFactory) cl.newInstance();
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            cl = IndexFactory.class.getClassLoader().loadClass("org.lex.perf.impl.IndexFactoryImpl");
+            indexFactory = (IIndexFactory) cl.newInstance();
+        } catch (Throwable e) {
+            LOGGER.error("Can't instantiate IndexFactory", e);
+            indexFactory = new NopIndexFactory();
         }
     }
 

@@ -20,9 +20,9 @@ class CounterIndexImpl extends IndexImpl implements CounterIndex {
     }
 
     @Override
-    public void addRequest(long requestTime, long duration) {
+    public void addRequest(long requestTime, long[] duration) {
         CounterTimeSlot timeSlot = counter.getTimeSlot(requestTime);
-        timeSlot.addHit(duration / 1000 / 1000, 0);
+        timeSlot.addHit(duration[0] / 1000 / 1000, 0);
     }
 
     @Override

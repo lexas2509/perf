@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://perf.lex.org"
-           targetNamespace="http://perf.lex.org" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://report.perf.lex.org"
+           targetNamespace="http://report.perf.lex.org" elementFormDefault="qualified">
 
     <xs:element name="Report" type="Report"/>
     <xs:complexType name="Report">

@@ -5,8 +5,10 @@ import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
+import org.lex.perf.config.Config;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.sensor.SensorEngine;
+import org.lex.perf.util.JAXBUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,10 +26,13 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     private Map<String, Map<String, Index>> indexes = new ConcurrentHashMap<String, Map<String, Index>>();
 
+    private final Config config;
+
     public IndexFactoryImpl() {
+        String contextPath = "org.lex.perf.config";
+        config = JAXBUtil.getObject(contextPath, "defaultConfig.xml");
         engine = new EngineImpl();
         sensorEngine = new SensorEngine(engine);
-
     }
 
     @Override
@@ -61,8 +66,6 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
                 return new InspectionIndexImpl(engine, indexSeries, indexName);
             case COUNTER:
                 return new CounterIndexImpl(engine, indexSeries, indexName);
-            case CPUCOUNTER:
-                return new CPUCounterIndexImpl(engine, indexSeries, indexName);
             case GAUGE:
                 return new GaugeIndexImpl(engine, indexSeries, indexName);
             default:
@@ -92,10 +95,14 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     @Override
     public IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType) {
-        return new PerfIndexSeriesImpl(indexSeriesName, indexType);
+        return new PerfIndexSeriesImpl(this, indexSeriesName, indexType);
     }
 
     public EngineImpl getEngine() {
         return engine;
+    }
+
+    public Config getConfig() {
+        return config;
     }
 }

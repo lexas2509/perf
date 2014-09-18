@@ -1,28 +1,43 @@
 package org.lex.perf.impl;
 
-import org.lex.perf.api.factory.IndexFactory;
-import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexSeriesImpl;
 import org.lex.perf.api.factory.IndexType;
+import org.lex.perf.config.ChildIndexSeriesType;
+import org.lex.perf.config.Config;
+import org.lex.perf.config.InspectionIndexSeriesType;
+
+import java.util.ArrayList;
 
 /**
  * Created by Алексей on 18.09.2014.
  */
 public class PerfIndexSeriesImpl extends IndexSeriesImpl {
 
-    private IndexSeries[] childSeries;
+    private String[] childSeries;
+    private final Boolean supportCPU;
     private boolean supportHistogramm;
 
-    public PerfIndexSeriesImpl(String name, IndexType indexType) {
+    public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name, IndexType indexType) {
         super(name, indexType);
-        childSeries = null;
-        supportHistogramm = true;
+        Config config = indexFactory.getConfig();
+        InspectionIndexSeriesType indexSeriesConfig = config.getDefaultIndexSeries();
+        for (InspectionIndexSeriesType idx : config.getIndexSeries()) {
+            if (name.equals(idx.getName())) {
+                indexSeriesConfig = idx;
+            }
+        }
+
+
+        supportHistogramm = indexSeriesConfig.isAllowHistogramm();
+        supportCPU = indexSeriesConfig.isAllowCPU();
+        ArrayList<String> childs = new ArrayList<String>();
+        for (ChildIndexSeriesType child : indexSeriesConfig.getChildIndexSeries()) {
+            childs.add(child.getName());
+        }
+        childSeries = childs.toArray(new String[childs.size()]);
     }
 
-    public IndexSeries[] getChildSeries() {
-        if (childSeries == null) {
-            return IndexFactory.getIndexSeries();
-        }
+    public String[] getChildSeries() {
         return childSeries;
     }
 

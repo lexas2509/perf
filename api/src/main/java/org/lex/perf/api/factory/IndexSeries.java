@@ -10,9 +10,9 @@ public interface IndexSeries {
 
     boolean isActive();
 
-    void addRequest(String indexName, long eventTime, long duration);
+    String[] getDurations();
 
-    void addRequest(String indexName, long eventTime, long duration, long cpuDuration);
+    void addRequest(String indexName, long eventTime, long duration[]);
 
     void bindContext(String contextName);
 
