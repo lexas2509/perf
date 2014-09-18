@@ -1,36 +1,48 @@
 package org.lex.perf.impl;
 
-import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.index.InspectionIndex;
 import org.lex.perf.engine.EngineImpl;
+import org.lex.perf.util.ThreadUtil;
 
 import java.util.Stack;
 
 /**
  * Created by Алексей on 17.09.2014.
  */
-class InspectionIndexImpl extends CounterIndexImpl implements InspectionIndex {
+class InspectionIndexImpl extends CPUCounterIndexImpl implements InspectionIndex {
 
-    private ThreadLocal<Stack<Long>> start = new ThreadLocal<Stack<Long>>() {
+    private static class InspectionElement {
+        long start;
+        long startCPU;
+        public String name;
+    }
+
+    private ThreadLocal<Stack<InspectionElement>> start = new ThreadLocal<Stack<InspectionElement>>() {
         @Override
-        protected Stack<Long> initialValue() {
-            return new Stack<Long>();
+        protected Stack<InspectionElement> initialValue() {
+            return new Stack<InspectionElement>();
         }
     };
 
-    InspectionIndexImpl(EngineImpl engine, IndexSeries indexSeries, String indexName) {
+    InspectionIndexImpl(EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
         super(engine, indexSeries, indexName);
     }
 
     @Override
     public void bindContext() {
-        start.get().push(System.currentTimeMillis());
+        InspectionElement current = new InspectionElement();
+        current.start = System.nanoTime();
+        current.startCPU = ThreadUtil.getCurrentThreadCpuTime();
+        current.name = indexName;
+        start.get().push(current);
     }
 
     @Override
     public void unBindContext() {
-        long finish = System.currentTimeMillis();
-        long duration = finish - start.get().pop();
-        addRequest(duration);
+        InspectionElement c = start.get().pop();
+        long finish = System.nanoTime();
+        long duration = finish - c.start;
+        long durationCPU = ThreadUtil.getCurrentThreadCpuTime() - c.startCPU;
+        addRequest(System.currentTimeMillis(), duration, durationCPU);
     }
 }

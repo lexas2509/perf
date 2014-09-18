@@ -9,6 +9,7 @@ import org.lex.perf.engine.Gauge;
 import org.lex.perf.engine.Index;
 import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.IndexImpl;
+import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.lex.perf.web.HttpItem;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
@@ -85,12 +86,15 @@ public class PerformanceReport implements HttpItem {
 
     private StringBuilder getDataPart(Range reportRange, Report report) {
         StringBuilder data = new StringBuilder();
-        for (ReportItemType reportItem : report.getGraphOrTable()) {
+        for (ReportItemType reportItem : report.getGraphOrHistogramTableOrPerfTable()) {
             if (reportItem instanceof GraphItemType) {
                 buildGraph(reportRange, (GraphItemType) reportItem, data);
             }
-            if (reportItem instanceof TableItemType) {
-                buildTable(reportRange, (TableItemType) reportItem, data);
+            if (reportItem instanceof HistogramTableItemType) {
+                buildHistogramTable(reportRange, (HistogramTableItemType) reportItem, data);
+            }
+            if (reportItem instanceof PerfTableItemType) {
+                buildPerfTable(reportRange, (PerfTableItemType) reportItem, data);
             }
             data.append("</br>");
         }
@@ -146,9 +150,12 @@ public class PerformanceReport implements HttpItem {
         }
     }
 
-    private void buildTable(Range reportRange, TableItemType reportItem, StringBuilder htmlReport) {
-        IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
+    private void buildHistogramTable(Range reportRange, HistogramTableItemType reportItem, StringBuilder htmlReport) {
+        PerfIndexSeriesImpl category = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(reportItem.getCategory());
         if (category == null) {
+            return;
+        }
+        if (!category.isSupportHistogramm()) {
             return;
         }
         htmlReport.append("<label>" + category.getName() + "</label>");
@@ -236,7 +243,118 @@ public class PerformanceReport implements HttpItem {
         }
         htmlReport.append("</TBODY>");
         htmlReport.append("</TABLE>");
+    }
+
+    private void buildPerfTable(Range reportRange, PerfTableItemType reportItem, StringBuilder htmlReport) {
+        IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
+        if (category == null) {
+            return;
+        }
+        if (!(category instanceof PerfIndexSeriesImpl)) {
+            return;
+        }
+        PerfIndexSeriesImpl indexSeries = (PerfIndexSeriesImpl) category;
+        htmlReport.append("<label>" + category.getName() + "</label>");
+        htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
+        htmlReport.append("<THEAD>");
+        htmlReport.append("<TR>");
+        htmlReport.append("<TH>Request</TH>");
+        htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
+        htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
+        htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+        if (indexSeries.isSupportCPU()) {
+            htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+            htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+        }
+
+        for (IndexSeries ix : indexSeries.getChildSeries()) {
+            htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
+            htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
+            htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+            if ((ix instanceof PerfIndexSeriesImpl) && ((PerfIndexSeriesImpl) ix).isSupportCPU()) {
+                htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+                htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+            }
+        }
+        htmlReport.append("</TR>");
+        htmlReport.append("</THEAD>");
+        htmlReport.append("<TBODY>");
+        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+        for (org.lex.perf.api.index.Index indexIt : indexes) {
+            Index index = ((IndexImpl) indexIt).getIndex();
+            int slotDuration = index.getSlotDuration();
+            long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
+            long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
+            DataProcessor dp = new DataProcessor(startTime, endTime);
+            dp.setStep(slotDuration / 1000);
+            switch (category.getIndexType()) {
+                case COUNTER:
+                case INSPECTION:
+                    Counter counter = (Counter) index;
+                    dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                    dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
+                    if (indexSeries.isSupportCPU()) {
+                        dp.addDatasource("totalcpu", counter.getFileName(), "totalcpu", ConsolFun.TOTAL);
+                    }
+
+                    double hits = 0;
+                    double total = 0;
+                    double totalCPU = 0;
+                    try {
+                        dp.processData();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    double[][] values = dp.getValues();
+                    int cnt = values[0].length;
+                    for (int i = 0; i < cnt; i++) {
+
+                        double v = values[0][i];
+                        if (Double.isNaN(v)) {
+                            v = 0;
+                        }
+                        hits = hits + v;
+
+                        double v1 = values[1][i];
+                        if (Double.isNaN(v1)) {
+                            v1 = 0;
+                        }
+                        total = total + v1;
+
+                        if (indexSeries.isSupportCPU()) {
+                            double v2 = values[2][i];
+                            if (Double.isNaN(v2)) {
+                                v2 = 0;
+                            }
+                            totalCPU = totalCPU + v2;
+                        }
+                    }
+                    double average = hits == 0 ? 0 : total / hits;
+
+                    htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
+                    htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
+                    htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
+                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+
+                    if (indexSeries.isSupportCPU()) {
+                        double averageCPU = hits == 0 ? 0 : totalCPU / hits;
+                        htmlReport.append("<TD>" + String.format("%16.3f", averageCPU / 1000 / 1000) + "</TD>");
+                    }
+
+                    htmlReport.append("</TR>");
+                    break;
+                case GAUGE:
+                    break;
+                default:
+                    break;
+            }
+        }
+        htmlReport.append("</TBODY>");
+        htmlReport.append("</TABLE>");
 
     }
+
 
 }

@@ -7,7 +7,8 @@
         <xs:sequence maxOccurs="unbounded" minOccurs="0">
             <xs:choice>
                 <xs:element name="Graph" type="GraphItemType"/>
-                <xs:element name="Table" type="TableItemType"/>
+                <xs:element name="HistogramTable" type="HistogramTableItemType"/>
+                <xs:element name="PerfTable" type="PerfTableItemType"/>
             </xs:choice>
         </xs:sequence>
     </xs:complexType>
@@ -22,7 +23,12 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="TableItemType">
+    <xs:complexType name="HistogramTableItemType">
+        <xs:complexContent>
+            <xs:extension base="ReportItemType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="PerfTableItemType">
         <xs:complexContent>
             <xs:extension base="ReportItemType"/>
         </xs:complexContent>

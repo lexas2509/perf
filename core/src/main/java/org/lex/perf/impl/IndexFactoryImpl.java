@@ -2,6 +2,7 @@ package org.lex.perf.impl;
 
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
 import org.lex.perf.engine.EngineImpl;
@@ -46,7 +47,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             synchronized (categoryIndices) {
                 index = categoryIndices.get(indexName);
                 if (index == null) {
-                    index = createIndex(indexSeries, indexName);
+                    index = createIndex((PerfIndexSeriesImpl) indexSeries, indexName);
                     categoryIndices.put(indexName, index);
                 }
             }
@@ -54,15 +55,16 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return index;
     }
 
-    private Index createIndex(IndexSeries indexSeries, String indexName) {
+    private Index createIndex(PerfIndexSeriesImpl indexSeries, String indexName) {
         switch (indexSeries.getIndexType()) {
             case INSPECTION:
                 return new InspectionIndexImpl(engine, indexSeries, indexName);
             case COUNTER:
                 return new CounterIndexImpl(engine, indexSeries, indexName);
+            case CPUCOUNTER:
+                return new CPUCounterIndexImpl(engine, indexSeries, indexName);
             case GAUGE:
                 return new GaugeIndexImpl(engine, indexSeries, indexName);
-
             default:
                 throw new RuntimeException("Unknown indexSeries.");
         }
@@ -86,6 +88,11 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             return Collections.emptyList();
         }
         return new ArrayList<Index>(indexes.values());
+    }
+
+    @Override
+    public IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType) {
+        return new PerfIndexSeriesImpl(indexSeriesName, indexType);
     }
 
     public EngineImpl getEngine() {

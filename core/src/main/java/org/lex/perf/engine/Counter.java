@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.RrdDef;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Counter extends Index<CounterTimeSlot> {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Counter.class);
 
-    public Counter(EngineImpl engine, IndexSeries category, String name) {
+    public Counter(EngineImpl engine, PerfIndexSeriesImpl category, String name) {
         super(engine, category, name);
     }
 
@@ -22,8 +22,13 @@ public class Counter extends Index<CounterTimeSlot> {
         int step = slotDuration / 1000;
         rrdDef.addDatasource("hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
         rrdDef.addDatasource("total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
-        for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
-            rrdDef.addDatasource("hits" + Integer.toString(i), DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+        if (category.isSupportCPU()) {
+            rrdDef.addDatasource("totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+        }
+        if (category.isSupportHistogramm()) {
+            for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
+                rrdDef.addDatasource("hits" + Integer.toString(i), DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            }
         }
 
         rrdDef.setStep(1);
@@ -35,7 +40,7 @@ public class Counter extends Index<CounterTimeSlot> {
 
     @Override
     protected CounterTimeSlot createTimeSlot(long startTime) {
-        return new CounterTimeSlot(startTime, startTime + slotDuration);
+        return new CounterTimeSlot(startTime, startTime + slotDuration, category.isSupportCPU(), category.isSupportHistogramm());
     }
 
     @Override

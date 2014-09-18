@@ -1,43 +1,20 @@
 package org.lex.perf.api.factory;
 
-import org.lex.perf.api.index.CounterIndex;
-
 /**
+ * Created by Алексей on 18.09.2014.
  */
-public class IndexSeries {
+public interface IndexSeries {
+    String getName();
 
-    private final String name;
+    IndexType getIndexType();
 
-    private final IndexType indexType;
+    boolean isActive();
 
+    void addRequest(String indexName, long eventTime, long duration);
 
-    public IndexSeries(String name, IndexType indexType) {
-        this.name = name;
-        this.indexType = indexType;
-    }
+    void addRequest(String indexName, long eventTime, long duration, long cpuDuration);
 
-    public String getName() {
-        return name;
-    }
+    void bindContext(String contextName);
 
-    public IndexType getIndexType() {
-        return indexType;
-    }
-
-    public boolean isActive() {
-        return true;
-    }
-
-    public void addRequest(String indexName, long duration) {
-        org.lex.perf.api.index.Index index = IndexFactory.getFactory().getIndex(this, indexName);
-        ((CounterIndex) index).addRequest(duration);
-    }
-
-    public void bindContext(String contextName) {
-        // not implemented yet. Currently it doesn't support contexts.
-    }
-
-    public void unbindContext(String contextName) {
-        // not implemented yet. Currently it doesn't support contexts.
-    }
+    void unbindContext(String contextName);
 }

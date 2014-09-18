@@ -9,5 +9,5 @@ public interface CounterIndex extends Index {
      *
      * @param duration - длительность "тика"
      */
-    void addRequest(long duration);
+    void addRequest(long requestTime, long duration);
 }

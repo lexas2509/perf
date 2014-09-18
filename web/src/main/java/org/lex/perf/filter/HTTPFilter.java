@@ -1,7 +1,6 @@
 package org.lex.perf.filter;
 
 import org.lex.perf.api.factory.IndexFactory;
-import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
 
@@ -16,7 +15,7 @@ public class HTTPFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         servletName = "HTTP";
-        IndexFactory.registerIndexSeries(new IndexSeries(servletName, IndexType.INSPECTION));
+        IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
     }
 
     @Override

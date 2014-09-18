@@ -1,7 +1,8 @@
-<Report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://perf.lex.org">
+<Report xmlns="http://perf.lex.org">
     <Graph category="JVM" item="CPU"/>
     <Graph category="JVM" item="Heap"/>
     <Graph category="GLOBAL" item="http"/>
-    <Table category="GLOBAL"/>
-    <Table category="HTTP"/>
+    <HistogramTable category="GLOBAL"/>
+    <HistogramTable category="HTTP"/>
+    <PerfTable category="HTTP"/>
 </Report>

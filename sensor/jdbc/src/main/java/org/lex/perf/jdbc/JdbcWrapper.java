@@ -385,7 +385,6 @@ public final class JdbcWrapper {
             }
         }
 
-        final long start = System.currentTimeMillis();
         boolean systemError = true;
         try {
             ACTIVE_CONNECTION_COUNT.incrementAndGet();
@@ -416,8 +415,7 @@ public final class JdbcWrapper {
             // (par exemple, seule la méthode close de la connection peut être appelée ce qui ferme aussi le statement)
             // Rq : pas de temps cpu pour les requêtes sql car c'est 0 ou quasiment 0
             ACTIVE_CONNECTION_COUNT.decrementAndGet();
-            final long duration = Math.max(System.currentTimeMillis() - start, 0);
-            sqlCounter.addRequest(requestName, duration);
+            sqlCounter.unbindContext(requestName);
         }
     }
 

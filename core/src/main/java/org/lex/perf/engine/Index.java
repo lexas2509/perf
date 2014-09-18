@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.rrd4j.core.RrdDb;
 import org.rrd4j.core.RrdDef;
 import org.rrd4j.core.Sample;
@@ -31,7 +31,7 @@ public abstract class Index<T extends TimeSlot> {
 
     protected RrdDb rrdDb;
 
-    protected final IndexSeries category;
+    protected final PerfIndexSeriesImpl category;
 
     protected final String indexName;
 
@@ -41,7 +41,7 @@ public abstract class Index<T extends TimeSlot> {
 
     protected AtomicLong sampleTime = new AtomicLong();
 
-    public Index(EngineImpl engine, IndexSeries category, String name) {
+    public Index(EngineImpl engine, PerfIndexSeriesImpl category, String name) {
         this.engine = engine;
         this.category = category;
         this.indexName = name;

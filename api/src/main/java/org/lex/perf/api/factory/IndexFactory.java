@@ -44,11 +44,17 @@ public abstract class IndexFactory {
         return indexFactory;
     }
 
+    public static IndexSeries[] getIndexSeries() {
+        return INDEX_SERIES.values().toArray(new IndexSeries[]{});
+    }
+
 
     public interface IIndexFactory {
         public Index getIndex(IndexSeries indexSeries, String indexName);
 
         public void registerGauge(GaugeIndex gaugeIndex);
+
+        IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType);
     }
 
     private final static Map<String, IndexSeries> INDEX_SERIES = new ConcurrentHashMap<String, IndexSeries>();
@@ -57,8 +63,13 @@ public abstract class IndexFactory {
         return INDEX_SERIES.get(indexSeries);
     }
 
-    public static IndexSeries registerIndexSeries(IndexSeries indexSeries) {
-        INDEX_SERIES.put(indexSeries.getName(), indexSeries);
-        return indexSeries;
+    public static synchronized IndexSeries registerIndexSeries(String indexSeriesName, IndexType indexType) {
+        if (INDEX_SERIES.containsKey(indexSeriesName)) {
+            return INDEX_SERIES.get(indexSeriesName);
+        } else {
+            IndexSeries indexSeries = indexFactory.createIndexSeries(indexSeriesName, indexType);
+            INDEX_SERIES.put(indexSeries.getName(), indexSeries);
+            return indexSeries;
+        }
     }
 }

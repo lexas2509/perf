@@ -1,6 +1,7 @@
 package org.lex.perf.engine;
 
 import org.lex.perf.common.CommonSeries;
+import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.fail;
@@ -12,12 +13,12 @@ public class IndexTest {
 
     @Test
     public void testGetTimeSlot() throws Exception {
-        Counter r = new Counter(engine, CommonSeries.HTTP, "req");
+        Counter r = new Counter(engine, (PerfIndexSeriesImpl) CommonSeries.HTTP, "req");
         long start = System.currentTimeMillis();
         for (long i = start; i < start + 1000000; i++) {
             CounterTimeSlot ts = r.getTimeSlot(i);
             if (ts.getEndTime() > i && ts.getStartTime() <= i) {
-                ts.addHit(9);
+                ts.addHit(9, 0);
             } else {
                 fail(Long.toString(i - start));
             }
@@ -26,7 +27,7 @@ public class IndexTest {
 
     @Test
     public void testGetTimeSlot10000() throws Exception {
-        Counter r = new Counter(engine, CommonSeries.HTTP, "req");
+        Counter r = new Counter(engine, (PerfIndexSeriesImpl) CommonSeries.HTTP, "req");
         long start = System.currentTimeMillis();
         CounterTimeSlot ts1 = r.getTimeSlot(start);
         CounterTimeSlot ts = r.getTimeSlot(start + 10000);

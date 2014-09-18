@@ -2,7 +2,6 @@ package org.lex.perf.sensor;
 
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.engine.EngineImpl;
-import org.lex.perf.engine.event.MonitoringValue;
 import org.lex.perf.impl.GaugeIndexImpl;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +42,8 @@ public class SensorEngine {
                         long eventTime = System.currentTimeMillis();
 
                         for (int i = 0; i < sensorItems.length; i++) {
-                            MonitoringValue event = new MonitoringValue();
-                            event.category = sensor.gaugeIndex.getIndexSeries();
-                            event.item = sensorItems[i];
-                            event.eventTime = eventTime;
-                            event.value = sensorData[i].doubleValue();
                             GaugeIndexImpl indexImpl = sensor.gaugeIndexes[i];
-                            indexImpl.putSensorValue(event);
+                            indexImpl.putSensorValue(eventTime, sensorData[i].doubleValue());
                         }
                     }
                 } catch (Exception e) {
