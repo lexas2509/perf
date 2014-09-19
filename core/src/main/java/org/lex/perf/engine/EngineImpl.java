@@ -1,6 +1,6 @@
 package org.lex.perf.engine;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
 import org.slf4j.Logger;
@@ -77,42 +77,18 @@ public class EngineImpl implements Engine {
     }
 
     public static String encodeIndexName(String indexName) {
-        String encode = Base64.encode(indexName.getBytes(Const.UTF8));
+        String encode = Base64.encodeBase64String(indexName.getBytes(Const.UTF8));
         encode = encode.replaceAll("==", "--");
         return encode;
     }
 
     public static String decodeIndexName(String fileName) {
         String partFileName = fileName.replaceAll("--", "==");
-        String indexName = new String(Base64.decode(partFileName), Const.UTF8);
+        String indexName = new String(Base64.decodeBase64(partFileName), Const.UTF8);
         return indexName;
     }
 
     private final List<Index> indexes = new ArrayList<Index>();
-
-    /*
-    public Index getIndex(IndexSeries category, String indexName) {
-        Map<String, Index> categoryIndexes = indexes.get(category);
-        if (categoryIndexes == null) {
-            categoryIndexes = new ConcurrentHashMap<String, Index>();
-            indexes.put(category, categoryIndexes);
-        }
-        Index result = categoryIndexes.get(indexName);
-        if (result == null) {
-            switch (category.getIndexType()) {
-                case GAUGE:
-                    result = new Gauge(this, category, indexName);
-                    break;
-                case COUNTER:
-                    result = new Counter(this, category, indexName);
-                    break;
-                default:
-                    break;
-            }
-            categoryIndexes.put(indexName, result);
-        }
-        return result;
-    }*/
 
     public Object getWorkingDirectory() {
         return workingDirectory;

@@ -1,6 +1,6 @@
 package org.lex.perf.report;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.engine.Counter;
@@ -142,7 +142,7 @@ public class PerformanceReport implements HttpItem {
                 throw new RuntimeException(e);
             }
             byte[] img = graph.getRrdGraphInfo().getBytes();
-            String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.encode(img) + "\" />";
+            String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.decodeBase64(img) + "\" />";
             htmlReport.append(reportGraph);
         }
     }
@@ -265,13 +265,15 @@ public class PerformanceReport implements HttpItem {
         }
 
         for (String ixName : indexSeries.getChildSeries()) {
-            htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-            htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
-            htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
             PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
-            if (ix.isSupportCPU()) {
-                htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
-                htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+            if (ix != null) {
+                htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
+                htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
+                htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+                if (ix.isSupportCPU()) {
+                    htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+                    htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+                }
             }
         }
         htmlReport.append("</TR>");
@@ -295,6 +297,19 @@ public class PerformanceReport implements HttpItem {
                     if (indexSeries.isSupportCPU()) {
                         dp.addDatasource("totalcpu", counter.getFileName(), "totalcpu", ConsolFun.TOTAL);
                     }
+
+                    for (String ixName : indexSeries.getChildSeries()) {
+                        PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
+                        if (ix != null) {
+                            dp.addDatasource(ixName + "_hits", counter.getFileName(), ixName + "_hits", ConsolFun.TOTAL);
+                            dp.addDatasource(ixName + "_total", counter.getFileName(), ixName + "_total", ConsolFun.TOTAL);
+
+                            if (ix.isSupportCPU()) {
+                                dp.addDatasource(ixName + "_totalcpu", counter.getFileName(), ixName + "_totalcpu", ConsolFun.TOTAL);
+                            }
+                        }
+                    }
+
 
                     double hits = 0;
                     double total = 0;

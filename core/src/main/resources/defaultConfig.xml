@@ -4,5 +4,6 @@
     </DefaultIndexSeries>
     <IndexSeries name="HTTP" allowCPU="true" allowHistogramm="true">
         <childIndexSeries name="SQL"/>
+        <childIndexSeries name="HTTP"/>
     </IndexSeries>
 </Config>
