@@ -327,49 +327,28 @@ public class PerformanceReport implements HttpItem {
                     }
 
 
-                    double hits = 0;
-                    double total = 0;
-                    double totalCPU = 0;
                     try {
                         dp.processData();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+
                     double[][] values = dp.getValues();
-                    int cnt = values[0].length;
-                    for (int i = 0; i < cnt; i++) {
+                    double[] res = sumTotal(values);
 
-                        double v = values[0][i];
-                        if (Double.isNaN(v)) {
-                            v = 0;
-                        }
-                        hits = hits + v;
-
-                        double v1 = values[1][i];
-                        if (Double.isNaN(v1)) {
-                            v1 = 0;
-                        }
-                        total = total + v1;
-
-                        if (indexSeries.isSupportCPU()) {
-                            double v2 = values[2][i];
-                            if (Double.isNaN(v2)) {
-                                v2 = 0;
-                            }
-                            totalCPU = totalCPU + v2;
-                        }
-                    }
-                    double average = hits == 0 ? 0 : total / hits;
-
+                    int idx = 0;
                     htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
                     htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
-                    htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
-                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
-                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+                    boolean supportCPU = indexSeries.isSupportCPU();
 
-                    if (indexSeries.isSupportCPU()) {
-                        double averageCPU = hits == 0 ? 0 : totalCPU / hits;
-                        htmlReport.append("<TD>" + String.format("%16.3f", averageCPU / 1000 / 1000) + "</TD>");
+                    idx = append(htmlReport, supportCPU, res, idx);
+
+
+                    for (String ixName : indexSeries.getChildSeries()) {
+                        PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
+                        if (ix != null) {
+                            idx = append(htmlReport, ix.isSupportCPU(), res, idx);
+                        }
                     }
 
                     htmlReport.append("</TR>");
@@ -385,5 +364,37 @@ public class PerformanceReport implements HttpItem {
 
     }
 
+    private int append(StringBuilder htmlReport, boolean supportCPU, double[] res, int idx) {
+        double hits = res[idx++];
+        htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
+        double total = res[idx++];
+        htmlReport.append("<TD>" + String.format("%16.0f", total) + "</TD>");
+        double average = hits == 0 ? 0 : total / hits;
+        htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+        if (supportCPU) {
+            double totalCPU = res[idx++];
+            htmlReport.append("<TD>" + String.format("%16.0f", totalCPU) + "</TD>");
+            double averageCPU = hits == 0 ? 0 : totalCPU / hits;
+            htmlReport.append("<TD>" + String.format("%16.3f", averageCPU / 1000 / 1000) + "</TD>");
+        }
+        return idx;
+    }
 
+    private double[] sumTotal(double[][] values) {
+        double[] res = new double[values.length];
+        int cnt = values[0].length;
+        for (int j = 0; j < values.length; j++) {
+            double val = 0;
+            for (int i = 0; i < cnt; i++) {
+
+                double v = values[j][i];
+                if (Double.isNaN(v)) {
+                    v = 0;
+                }
+                val = val + v;
+            }
+            res[j] = val;
+        }
+        return res;
+    }
 }
