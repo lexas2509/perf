@@ -255,27 +255,43 @@ public class PerformanceReport implements HttpItem {
         htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
         htmlReport.append("<THEAD>");
         htmlReport.append("<TR>");
-        htmlReport.append("<TH>Request</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+
+        StringBuilder firstHead = new StringBuilder();
+        StringBuilder secondHead = new StringBuilder();
+        int colspan = 0;
+        secondHead.append("<TH class=sorttable_string>name</TH>");
+        secondHead.append("<TH class=sorttable_numeric>hits</TH>");
+        secondHead.append("<TH class=sorttable_numeric>total (ms)</TH>");
+        secondHead.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+        colspan += 4;
         if (indexSeries.isSupportCPU()) {
-            htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
-            htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+            secondHead.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+            secondHead.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+            colspan += 2;
         }
+
+        firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + indexSeries.getName() + "</TH>");
 
         for (String ixName : indexSeries.getChildSeries()) {
             PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
             if (ix != null) {
-                htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-                htmlReport.append("<TH class=sorttable_numeric>total (ms)</TH>");
-                htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+                colspan = 0;
+                secondHead.append("<TH class=sorttable_numeric>hits</TH>");
+                secondHead.append("<TH class=sorttable_numeric>total (ms)</TH>");
+                secondHead.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+                colspan += 3;
                 if (ix.isSupportCPU()) {
-                    htmlReport.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
-                    htmlReport.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+                    secondHead.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+                    secondHead.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+                    colspan += 2;
                 }
+                firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + ix.getName() + "</TH>");
             }
         }
+        htmlReport.append(firstHead);
+        htmlReport.append("</TR>");
+        htmlReport.append("<TR>");
+        htmlReport.append(secondHead);
         htmlReport.append("</TR>");
         htmlReport.append("</THEAD>");
         htmlReport.append("<TBODY>");

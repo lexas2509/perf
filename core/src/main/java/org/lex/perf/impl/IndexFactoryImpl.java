@@ -6,6 +6,7 @@ import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
 import org.lex.perf.config.Config;
+import org.lex.perf.config.InspectionIndexSeriesType;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.sensor.SensorEngine;
 import org.lex.perf.util.JAXBUtil;
@@ -95,7 +96,9 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     @Override
     public IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType) {
-        return new PerfIndexSeriesImpl(this, indexSeriesName, indexType);
+        PerfIndexSeriesImpl indexSeries = new PerfIndexSeriesImpl(this, indexSeriesName, indexType);
+        engine.loadIndexesFromDisk(indexSeries);
+        return indexSeries;
     }
 
     public EngineImpl getEngine() {
@@ -104,5 +107,14 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     public Config getConfig() {
         return config;
+    }
+
+    public boolean isCpuSupported(String child) {
+        for (InspectionIndexSeriesType d : config.getIndexSeries()) {
+            if (d.getName().equals(child)) {
+                return d.isAllowCPU();
+            }
+        }
+        return config.getDefaultIndexSeries().isAllowCPU();
     }
 }

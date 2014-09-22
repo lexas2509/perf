@@ -1,9 +1,7 @@
 package org.lex.perf.engine;
 
 import org.lex.perf.impl.PerfIndexSeriesImpl;
-import org.rrd4j.core.RrdDb;
-import org.rrd4j.core.RrdDef;
-import org.rrd4j.core.Sample;
+import org.rrd4j.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +25,7 @@ public abstract class Index<T extends TimeSlot> {
 
     private AtomicReferenceArray<T> timeSlots = new AtomicReferenceArray<T>(NUM_OF_SLOT);
 
-    private final Engine engine;
+    protected final EngineImpl engine;
 
     protected RrdDb rrdDb;
 
@@ -45,7 +43,7 @@ public abstract class Index<T extends TimeSlot> {
         this.engine = engine;
         this.category = category;
         this.indexName = name;
-        fileName = engine.getWorkingDirectory() + "/" + EngineImpl.encodeIndexName(indexName) + ".rrd";
+        fileName = engine.getWorkingDirectory() + "/" + EngineImpl.getCategoryPrefix(category) + "-" + EngineImpl.encodeIndexName(indexName) + ".rrd";
         sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
 
         try {
@@ -53,6 +51,9 @@ public abstract class Index<T extends TimeSlot> {
             if (new File(getFileName()).exists()) {
                 try {
                     rrdDb = new RrdDb(getFileName(), false);
+                    if (!checkRrdDef(rrdDef, rrdDb.getRrdDef())) {
+                        rrdDb = null;
+                    }
                 } catch (RuntimeException e) {
                     rrdDb = null;
                 }
@@ -69,6 +70,40 @@ public abstract class Index<T extends TimeSlot> {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private boolean checkRrdDef(RrdDef expected, RrdDef actual) {
+        if (expected.getDsCount() != actual.getDsCount()) {
+            return false;
+        }
+        DsDef[] expectedDsDefs = expected.getDsDefs();
+        DsDef[] actualDsDefs = actual.getDsDefs();
+
+        for (int i = 0; i < expected.getDsCount(); i++) {
+            DsDef expectedDS = expectedDsDefs[i];
+            DsDef actualDsDef = actualDsDefs[i];
+
+            if (!expectedDS.dump().equals(actualDsDef.dump())) {
+                return false;
+            }
+        }
+
+        if (expected.getArcCount() != actual.getArcCount()) {
+            return false;
+        }
+        ArcDef[] expectedArcDefs = expected.getArcDefs();
+        ArcDef[] actualArcDefs = actual.getArcDefs();
+
+        for (int i = 0; i < expected.getArcCount(); i++) {
+            ArcDef expectedDS = expectedArcDefs[i];
+            ArcDef actualArcDef = actualArcDefs[i];
+
+            if (!expectedDS.dump().equals(actualArcDef.dump())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected RrdDef getRrdDef() {
@@ -115,13 +150,11 @@ public abstract class Index<T extends TimeSlot> {
             long currentTime = timeSlot.getEndTime() / 1000;
             sample = rrdDb.createSample();
             sample.setTime(currentTime);
-//            LOGGER.warn(indexName + ":" + Long.toString(sample.getTime()));
             timeSlot.storeData(sample);
             if (rrdDb.getLastUpdateTime() >= currentTime) {
                 new Object();
             }
             sample.update();
-//            rrdDb.dumpXml("e:/mondata/counter-" + fileName + ".xml");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -158,7 +191,7 @@ public abstract class Index<T extends TimeSlot> {
             T slot = timeSlots.get(n);
             if (slot == null) {
                 slot = createTimeSlot(time);
-                LOGGER.warn("dummy timeslot created {} ", slot.getStartTime() / 1000);
+                //LOGGER.warn("dummy timeslot created {} ", slot.getStartTime() / 1000);
             } else {
                 if (!timeSlots.compareAndSet(n, slot, null)) {
                     new Object();

@@ -49,29 +49,30 @@ public class EngineImpl implements Engine {
             }
         }, SAMPLE_DURATION - 1, SAMPLE_DURATION); // 10 sec
 
-        //load indexes from disk
+    }
+
+    public void loadIndexesFromDisk(IndexSeries indexSeries) {
+        String categoryPrefix = getCategoryPrefix(indexSeries);
+
         File[] files = new File(workingDirectory).listFiles();
         if (files != null) {
             for (File file : files) {
-                String[] names = file.getName().split("-");
-
-                if (names.length != 2) {
+                if (!file.getName().startsWith(categoryPrefix)) {
                     continue;
                 }
 
-                IndexSeries monitoringCategory = IndexFactory.getIndexSeries(names[0]);
-                if (monitoringCategory == null) {
-                    continue;
-                }
+                String fileNamePart1 = file.getName().substring(categoryPrefix.length());
 
-                int idx = names[1].indexOf(".rrd");
+
+                int idx = fileNamePart1.indexOf(".rrd");
                 if (idx == -1) {
                     continue;
                 }
 
-                String indexName = names[1].substring(0, idx);
-                indexName = decodeIndexName(indexName);
-                IndexFactory.getFactory().getIndex(monitoringCategory, indexName);
+
+                String indexNamePart = fileNamePart1.substring(1, idx);
+                String indexName = decodeIndexName(indexNamePart);
+                IndexFactory.getFactory().getIndex(indexSeries, indexName);
             }
         }
     }
@@ -80,6 +81,10 @@ public class EngineImpl implements Engine {
         String encode = Base64.encodeBase64String(indexName.getBytes(Const.UTF8));
         encode = encode.replaceAll("==", "--");
         return encode;
+    }
+
+    public static String getCategoryPrefix(IndexSeries category) {
+        return category.getIndexType().name().substring(0, 1) + "-" + category.getName();
     }
 
     public static String decodeIndexName(String fileName) {

@@ -1,5 +1,7 @@
 package org.lex.perf.engine;
 
+import org.lex.perf.api.factory.IndexFactory;
+import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
@@ -28,6 +30,14 @@ public class Counter extends Index<CounterTimeSlot> {
         if (category.isSupportHistogramm()) {
             for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
                 rrdDef.addDatasource("hits" + Integer.toString(i), DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            }
+        }
+
+        for (String child : category.getChildSeries()) {
+            rrdDef.addDatasource(child + "_hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            rrdDef.addDatasource(child + "_total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
+            if (((IndexFactoryImpl) IndexFactory.getFactory()).isCpuSupported(child)) {
+                rrdDef.addDatasource(child + "_totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
             }
         }
 
