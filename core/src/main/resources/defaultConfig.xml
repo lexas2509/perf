@@ -1,9 +1,46 @@
 <Config xmlns="http://config.perf.lex.org">
     <DefaultIndexSeries allowCPU="false" allowHistogramm="false">
-        <childIndexSeries name="SQL"/>
+        <childSeries>
+            <childIndexSeries name="SQL"/>
+            <childIndexSeries name="PERF"/>
+        </childSeries>
+        <mapsTo>
+            <mapsTo name="PERF"/>
+        </mapsTo>
     </DefaultIndexSeries>
+
+    <IndexSeries name="PERF" allowCPU="true" allowHistogramm="true">
+        <childSeries>
+            <childIndexSeries name="SQL"/>
+            <childIndexSeries name="PERF"/>
+        </childSeries>
+    </IndexSeries>
+
+
     <IndexSeries name="HTTP" allowCPU="true" allowHistogramm="true">
-        <childIndexSeries name="SQL"/>
-        <childIndexSeries name="HTTP"/>
+        <childSeries>
+            <childIndexSeries name="SQL"/>
+            <childIndexSeries name="PERF"/>
+        </childSeries>
+    </IndexSeries>
+
+    <IndexSeries name="PRF.RPT.GRPH">
+        <mapsTo>
+            <mapsTo name="PERF.RPT"/>
+            <mapsTo name="PERF"/>
+        </mapsTo>
+    </IndexSeries>
+    <IndexSeries name="PRF.RPT.HSGM">
+        <mapsTo>
+            <mapsTo name="PERF.RPT"/>
+            <mapsTo name="PERF"/>
+        </mapsTo>
+    </IndexSeries>
+
+    <IndexSeries name="PRF.RPT.TBL">
+        <mapsTo>
+            <mapsTo name="PERF.RPT"/>
+            <mapsTo name="PERF"/>
+        </mapsTo>
     </IndexSeries>
 </Config>

@@ -3,6 +3,8 @@ package org.lex.perf.filter;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -11,11 +13,20 @@ import java.io.IOException;
 /**
  */
 public class HTTPFilter implements Filter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPFilter.class);
     private String servletName = "HTTP";
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        servletName = "HTTP";
-        IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
+        try {
+            servletName = "HTTP";
+            IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
+        } catch (Error error) {
+            LOGGER.error("", error);
+            throw error;
+        } catch (RuntimeException error) {
+            LOGGER.error("", error);
+            throw error;
+        }
     }
 
     @Override

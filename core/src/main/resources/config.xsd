@@ -18,8 +18,13 @@
     <xs:complexType name="InspectionIndexSeriesType">
         <xs:complexContent>
             <xs:extension base="IndexSeriesType">
-                <xs:sequence maxOccurs="unbounded" minOccurs="0">
-                    <xs:element name="childIndexSeries" type="ChildIndexSeriesType"/>
+                <xs:sequence maxOccurs="1" minOccurs="0">
+                    <xs:sequence maxOccurs="1" minOccurs="0">
+                        <xs:element name="childSeries" type="ChildSeriesType"/>
+                    </xs:sequence>
+                    <xs:sequence maxOccurs="1" minOccurs="0">
+                        <xs:element name="mapsTo" type="MapsToType"/>
+                    </xs:sequence>
                 </xs:sequence>
                 <xs:attribute name="name"/>
                 <xs:attribute name="allowCPU" type="xs:boolean"/>
@@ -29,5 +34,20 @@
     </xs:complexType>
     <xs:complexType name="ChildIndexSeriesType">
         <xs:attribute name="name"/>
+    </xs:complexType>
+    <xs:complexType name="MapsToSeriesType">
+        <xs:attribute name="name"/>
+    </xs:complexType>
+
+
+    <xs:complexType name="ChildSeriesType">
+        <xs:sequence maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="childIndexSeries" type="ChildIndexSeriesType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MapsToType">
+        <xs:sequence maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="mapsTo" type="MapsToSeriesType"/>
+        </xs:sequence>
     </xs:complexType>
 </xs:schema>

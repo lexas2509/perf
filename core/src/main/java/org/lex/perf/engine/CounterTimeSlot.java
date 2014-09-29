@@ -1,5 +1,6 @@
 package org.lex.perf.engine;
 
+import org.lex.perf.impl.Duration;
 import org.rrd4j.core.Sample;
 
 /**
@@ -10,86 +11,100 @@ public class CounterTimeSlot extends TimeSlot {
     private final static int CNT = times.length;
     private final boolean supportCPU;
     private final boolean supportHistogramm;
+    private final String[] childsSeries;
 
-    private long count = 0;
     private long max = Long.MIN_VALUE;
-    private long total = 0;
-    private long totalCPU = 0;
-    private long[] statTimes = new long[CNT + 1];
+    private Duration duration;
+    private Duration[] childDurations;
+    private long[] statTimes = new long[CNT];
 
-    public CounterTimeSlot(long startTime, long endTime, boolean supportCPU, boolean supportHistogramm) {
+    public CounterTimeSlot(long startTime, long endTime, boolean supportCPU, boolean supportHistogramm, String[] childSeries) {
         super(startTime, endTime);
         this.supportCPU = supportCPU;
         this.supportHistogramm = supportHistogramm;
+        this.childsSeries = childSeries;
+        duration = new Duration();
+        childDurations = new Duration[childSeries.length];
+        for (int i = 0; i < childSeries.length; i++) {
+            childDurations[i] = new Duration();
+        }
     }
 
-    public synchronized void addHit(long time, long cpuDuration) {
-        count++;
-        total = total + time;
-        totalCPU = totalCPU + cpuDuration;
-        if (time > max) {
-            max = time;
+    public void addHit(long duration, long cpuDuration) {
+        Duration own = new Duration();
+        own.duration = duration;
+        addHit(own, null);
+    }
+
+    public void addHit(Duration own, Duration[] childs) {
+        duration.count++;
+        duration.duration = duration.duration + own.duration;
+        if (supportCPU) {
+            duration.cpuDuration = duration.cpuDuration + own.cpuDuration;
         }
 
-        // Переведем в ms
+        if (own.duration > max) {
+            max = own.duration;
+        }
 
-        time = time;
-        int w = CNT / 2;
-        int pos = CNT / 2;
-        while (w > 1) {
-            w = w / 2;
-            if (times[pos] >= time) {
-                pos = pos - w;
-            } else {
-                pos = pos + w;
+        // Переведем в ms и заполним histogram
+        if (supportHistogramm) {
+            double duration = own.duration / 1000 / 1000;
+            int w = CNT / 2;
+            int pos = CNT / 2;
+            while (w > 1) {
+                w = w / 2;
+                if (times[pos] >= duration) {
+                    pos = pos - w;
+                } else {
+                    pos = pos + w;
+                }
+            }
+            if (times[pos] >= duration) {
+                pos--;
+            }
+            statTimes[pos]++;
+        }
+
+        // сохраним данные по вложенным сериям
+        if (childsSeries.length > 0) {
+            for (int i = 0; i < childsSeries.length; i++) {
+                childDurations[i].count += childs[i].count;
+                childDurations[i].cpuDuration += childs[i].cpuDuration;
+                childDurations[i].duration += childs[i].duration;
             }
         }
-        if (times[pos] >= time) {
-            pos--;
-        }
-        statTimes[pos]++;
     }
 
     public long getStatCount(int idx) {
         return statTimes[idx];
     }
 
-    public long getCount() {
-        return count;
-    }
-
-    public long getMax() {
-        return max;
-    }
-
-    public long getTotal() {
-        return total;
-    }
-
 
     @Override
     public void storeData(Sample sample) {
-        int size = 2 + (supportCPU ? 1 : 0) + (supportHistogramm ? statTimes.length : 0);
+        int size = 3 + (supportHistogramm ? statTimes.length : 0) + 3 * childDurations.length;
         double[] t = new double[size];
         int idx = 0;
-        t[idx++] = getCount();
-        t[idx++] = getTotal();
+        t[idx++] = duration.count;
+        t[idx++] = duration.duration;
 
 
-        if (supportCPU) {
-            t[idx++] = getTotalCPU();
-        }
+        t[idx++] = duration.cpuDuration;
 
         if (supportHistogramm) {
             for (int i = 0; i < statTimes.length; i++) {
-                t[i + idx] = statTimes[i];
+                t[idx++] = statTimes[i];
             }
         }
 
-        sample.setValues(t);
-    }
+        for (int i = 0; i < childDurations.length; i++) {
+            t[idx++] = childDurations[i].count;
+            t[idx++] = childDurations[i].duration;
+            t[idx++] = childDurations[i].cpuDuration;
 
-    public double getTotalCPU() {
-        return totalCPU;
+        }
+
+        sample.setValues(t);
     }
 }

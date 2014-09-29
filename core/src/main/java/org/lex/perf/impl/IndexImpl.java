@@ -15,12 +15,15 @@ public abstract class IndexImpl implements Index {
 
     protected final IndexSeries indexSeries;
 
+    protected final IndexFactoryImpl indexFactory;
+
     protected boolean isActive = true;
 
-    public IndexImpl(EngineImpl engine, IndexSeries indexSeries, String indexName) {
+    public IndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, IndexSeries indexSeries, String indexName) {
         this.engine = engine;
         this.indexSeries = indexSeries;
         this.indexName = indexName;
+        this.indexFactory = indexFactory;
     }
 
     @Override

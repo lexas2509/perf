@@ -11,7 +11,7 @@ public class CounterTimeSlotTest {
 
     @Test
     public void testGistogramm() {
-        CounterTimeSlot r = new CounterTimeSlot(10, 20, false, true);
+        CounterTimeSlot r = new CounterTimeSlot(10, 20, false, true, new String[]{});
         r.addHit(0, 0); // it' [0;1] - first slot
         assertEquals(r.getStatCount(0), 1);
         assertEquals(r.getStatCount(1), 0);

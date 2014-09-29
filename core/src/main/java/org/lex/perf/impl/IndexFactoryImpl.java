@@ -5,8 +5,7 @@ import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
-import org.lex.perf.config.Config;
-import org.lex.perf.config.InspectionIndexSeriesType;
+import org.lex.perf.config.*;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.sensor.SensorEngine;
 import org.lex.perf.util.JAXBUtil;
@@ -64,11 +63,11 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     private Index createIndex(PerfIndexSeriesImpl indexSeries, String indexName) {
         switch (indexSeries.getIndexType()) {
             case INSPECTION:
-                return new InspectionIndexImpl(engine, indexSeries, indexName);
+                return new InspectionIndexImpl(this, engine, indexSeries, indexName);
             case COUNTER:
-                return new CounterIndexImpl(engine, indexSeries, indexName);
+                return new CounterIndexImpl(this, engine, indexSeries, indexName);
             case GAUGE:
-                return new GaugeIndexImpl(engine, indexSeries, indexName);
+                return new GaugeIndexImpl(this, engine, indexSeries, indexName);
             default:
                 throw new RuntimeException("Unknown indexSeries.");
         }
@@ -110,11 +109,34 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     }
 
     public boolean isCpuSupported(String child) {
+        Boolean isAllowCPU = null;
         for (InspectionIndexSeriesType d : config.getIndexSeries()) {
             if (d.getName().equals(child)) {
-                return d.isAllowCPU();
+                isAllowCPU = d.isAllowCPU();
+                break;
             }
         }
-        return config.getDefaultIndexSeries().isAllowCPU();
+        return isAllowCPU != null ? isAllowCPU : config.getDefaultIndexSeries().isAllowCPU();
+    }
+
+    public List<String> getMapsTo(String childSeries) {
+        MapsToType mapsToType = null;
+        for (IndexSeriesType indexSeriesType : config.getIndexSeries()) {
+            if (indexSeriesType instanceof InspectionIndexSeriesType) {
+                InspectionIndexSeriesType inspectionIndexSeriesType = (InspectionIndexSeriesType) indexSeriesType;
+                if (inspectionIndexSeriesType.getName().equals(childSeries)) {
+                    mapsToType = inspectionIndexSeriesType.getMapsTo();
+                    break;
+                }
+            }
+        }
+        if (mapsToType == null) {
+            mapsToType = config.getDefaultIndexSeries().getMapsTo();
+        }
+        List<String> result = new ArrayList<String>();
+        for (MapsToSeriesType m : mapsToType.getMapsTo()) {
+            result.add(m.getName());
+        }
+        return result;
     }
 }

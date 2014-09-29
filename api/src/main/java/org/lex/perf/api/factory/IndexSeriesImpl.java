@@ -54,6 +54,6 @@ public class IndexSeriesImpl implements IndexSeries {
     @Override
     public void unbindContext(String contextName) {
         org.lex.perf.api.index.Index index = IndexFactory.getFactory().getIndex(this, contextName);
-        ((InspectionIndex) index).bindContext();
+        ((InspectionIndex) index).unBindContext();
     }
 }

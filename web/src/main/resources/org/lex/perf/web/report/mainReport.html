@@ -58,7 +58,8 @@
         }
 
         function onLoad() {
-            setInterval(refreshCurrentTime, 1000)   // start refresh data each second
+            refreshCurrentTime();
+            setInterval(refreshCurrentTime, 15000);   // start refresh data each 15 second
         }
 
     </script>

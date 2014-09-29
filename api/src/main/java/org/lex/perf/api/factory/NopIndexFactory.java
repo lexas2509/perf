@@ -27,11 +27,6 @@ public class NopIndexFactory implements IndexFactory.IIndexFactory {
                     }
 
                     @Override
-                    public void addRequest(long requestTime, long[] durations) {
-
-                    }
-
-                    @Override
                     public boolean isActive() {
                         return false;
                     }

@@ -1,7 +1,5 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.factory.IndexFactory;
-import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
@@ -24,11 +22,9 @@ public class Counter extends Index<CounterTimeSlot> {
         int step = slotDuration / 1000;
         rrdDef.addDatasource("hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
         rrdDef.addDatasource("total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
-        if (category.isSupportCPU()) {
-            rrdDef.addDatasource("totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
-        }
+        rrdDef.addDatasource("totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
         if (category.isSupportHistogramm()) {
-            for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
+            for (int i = 0; i < CounterTimeSlot.times.length; i++) {
                 rrdDef.addDatasource("hits" + Integer.toString(i), DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
             }
         }
@@ -36,9 +32,7 @@ public class Counter extends Index<CounterTimeSlot> {
         for (String child : category.getChildSeries()) {
             rrdDef.addDatasource(child + "_hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
             rrdDef.addDatasource(child + "_total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
-            if (((IndexFactoryImpl) IndexFactory.getFactory()).isCpuSupported(child)) {
-                rrdDef.addDatasource(child + "_totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
-            }
+            rrdDef.addDatasource(child + "_totalcpu", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
         }
 
         rrdDef.setStep(1);
@@ -50,7 +44,7 @@ public class Counter extends Index<CounterTimeSlot> {
 
     @Override
     protected CounterTimeSlot createTimeSlot(long startTime) {
-        return new CounterTimeSlot(startTime, startTime + slotDuration, category.isSupportCPU(), category.isSupportHistogramm());
+        return new CounterTimeSlot(startTime, startTime + slotDuration, category.isSupportCPU(), category.isSupportHistogramm(), category.getChildSeries());
     }
 
     @Override

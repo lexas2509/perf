@@ -3,6 +3,7 @@ package org.lex.perf.report;
 import org.apache.commons.codec.binary.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.engine.Counter;
 import org.lex.perf.engine.CounterTimeSlot;
 import org.lex.perf.engine.Gauge;
@@ -98,282 +99,291 @@ public class PerformanceReport implements HttpItem {
         return data;
     }
 
-    private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
-        RrdGraphDef graphDef = new RrdGraphDef();
-        graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
-        IndexSeries category = IndexFactory.getIndexSeries(graphItem.getCategory());
-        if (category == null) {
-            return;
-        }
+    private static final IndexSeries GRAPH = IndexFactory.registerIndexSeries("PRF.RPT.GRPH", IndexType.INSPECTION);
 
-        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
-        for (org.lex.perf.api.index.Index indexIt : indexes) {
-            Index index = ((IndexImpl) indexIt).getIndex();
-            switch (category.getIndexType()) {
-                case COUNTER:
-                case INSPECTION:
-                    Counter counter = (Counter) index;
-                    graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
-                    //graphDef.datasource("value", "e:/mondata/" + counter.getFileName() + ".rrd", "value", ConsolFun.TOTAL);
-                    //graphDef.datasource("average", "value,hits,/");
-                    graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
-                    //graphDef.area("average", new Color(0xFF, 0, 0), "average of " + counter.getIndexName());
-                    break;
-                case GAUGE:
-                    Gauge gauge = (Gauge) index;
-                    graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
-                    graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
-                    graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
-                    graphDef.line("maxvalue", new Color(255, 6, 25), gauge.getIndexName(), 1);
-                    graphDef.area("minvalue", new Color(1, 5, 255), gauge.getIndexName());
-                    graphDef.area("value", new Color(8, 255, 6), gauge.getIndexName());
-                    break;
-                default:
-                    break;
+    private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
+        GRAPH.bindContext(graphItem.getItem());
+        try {
+            RrdGraphDef graphDef = new RrdGraphDef();
+            graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
+            IndexSeries category = IndexFactory.getIndexSeries(graphItem.getCategory());
+            if (category == null) {
+                return;
             }
-            graphDef.setHeight(160);
-            graphDef.setWidth(400);
-            graphDef.setFilename("-");
-            RrdGraph graph = null;
-            try {
-                graph = new RrdGraph(graphDef);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+
+            IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+            for (org.lex.perf.api.index.Index indexIt : indexes) {
+                Index index = ((IndexImpl) indexIt).getIndex();
+                switch (category.getIndexType()) {
+                    case COUNTER:
+                    case INSPECTION:
+                        Counter counter = (Counter) index;
+                        graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                        graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
+                        break;
+                    case GAUGE:
+                        Gauge gauge = (Gauge) index;
+                        graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
+                        graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
+                        graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
+                        graphDef.line("maxvalue", new Color(255, 6, 25), gauge.getIndexName(), 1);
+                        graphDef.area("minvalue", new Color(1, 5, 255), gauge.getIndexName());
+                        graphDef.area("value", new Color(8, 255, 6), gauge.getIndexName());
+                        break;
+                    default:
+                        break;
+                }
+                graphDef.setHeight(160);
+                graphDef.setWidth(400);
+                graphDef.setFilename("-");
+                RrdGraph graph = null;
+                try {
+                    graph = new RrdGraph(graphDef);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                byte[] img = graph.getRrdGraphInfo().getBytes();
+                String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.decodeBase64(img) + "\" />";
+                htmlReport.append(reportGraph);
             }
-            byte[] img = graph.getRrdGraphInfo().getBytes();
-            String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.decodeBase64(img) + "\" />";
-            htmlReport.append(reportGraph);
+        } finally {
+            GRAPH.unbindContext(graphItem.getItem());
         }
     }
 
+    private static final IndexSeries HISTOGRAM = IndexFactory.registerIndexSeries("PRF.RPT.HSGM", IndexType.INSPECTION);
+
     private void buildHistogramTable(Range reportRange, HistogramTableItemType reportItem, StringBuilder htmlReport) {
-        PerfIndexSeriesImpl category = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(reportItem.getCategory());
-        if (category == null) {
-            return;
-        }
-        if (!category.isSupportHistogramm()) {
-            return;
-        }
-        htmlReport.append("<label>" + category.getName() + "</label>");
-        htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
-        htmlReport.append("<THEAD>");
-        htmlReport.append("<TR>");
-        htmlReport.append("<TH>Request</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-        htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
-        for (int i = 0; i < CounterTimeSlot.times.length - 1; i++) {
-            String s = "&lt;" + CounterTimeSlot.times[i + 1];
-            htmlReport.append("<TH class=sorttable_numeric>" + s + "ms</TH>");
-        }
+        HISTOGRAM.bindContext(reportItem.category);
+        try {
+            PerfIndexSeriesImpl category = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(reportItem.getCategory());
+            if (category == null) {
+                return;
+            }
+            if (!category.isSupportHistogramm()) {
+                return;
+            }
+            htmlReport.append("<label>" + category.getName() + "</label>");
+            htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
+            htmlReport.append("<THEAD>");
+            htmlReport.append("<TR>");
+            htmlReport.append("<TH>Request</TH>");
+            htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
+            htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+            for (int i = 0; i < CounterTimeSlot.times.length - 1; i++) {
+                String s = "&lt;" + CounterTimeSlot.times[i + 1];
+                htmlReport.append("<TH class=sorttable_numeric>" + s + "ms</TH>");
+            }
 
-        htmlReport.append("<TH class=sorttable_numeric>&gt;" + CounterTimeSlot.times[CounterTimeSlot.times.length - 1] + "ms </TH>");
-        htmlReport.append("</TR>");
-        htmlReport.append("</THEAD>");
-        htmlReport.append("<TBODY>");
-        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
-        for (org.lex.perf.api.index.Index indexIt : indexes) {
-            Index index = ((IndexImpl) indexIt).getIndex();
-            int slotDuration = index.getSlotDuration();
-            long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
-            long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
-            DataProcessor dp = new DataProcessor(startTime, endTime);
-            dp.setStep(slotDuration / 1000);
-            switch (category.getIndexType()) {
-                case COUNTER:
-                case INSPECTION:
-                    Counter counter = (Counter) index;
-                    dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
-                    dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
+            htmlReport.append("<TH class=sorttable_numeric>&gt;" + CounterTimeSlot.times[CounterTimeSlot.times.length - 1] + "ms </TH>");
+            htmlReport.append("</TR>");
+            htmlReport.append("</THEAD>");
+            htmlReport.append("<TBODY>");
+            IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+            for (org.lex.perf.api.index.Index indexIt : indexes) {
+                Index index = ((IndexImpl) indexIt).getIndex();
+                int slotDuration = index.getSlotDuration();
+                long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
+                long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
+                DataProcessor dp = new DataProcessor(startTime, endTime);
+                dp.setStep(slotDuration / 1000);
+                switch (category.getIndexType()) {
+                    case COUNTER:
+                    case INSPECTION:
+                        Counter counter = (Counter) index;
+                        dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                        dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
 
-                    for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
-                        dp.addDatasource("hits" + Integer.toString(i), counter.getFileName(), "hits" + Integer.toString(i), ConsolFun.TOTAL);
-                    }
-                    double hits = 0;
-                    double total = 0;
-                    try {
-                        dp.processData();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    double[][] values = dp.getValues();
-                    int cnt = values[0].length;
-                    for (int i = 0; i < cnt; i++) {
-                        double v = values[0][i];
-                        if (Double.isNaN(v)) {
-                            v = 0;
+                        for (int i = 0; i < CounterTimeSlot.times.length; i++) {
+                            dp.addDatasource("hits" + Integer.toString(i), counter.getFileName(), "hits" + Integer.toString(i), ConsolFun.TOTAL);
                         }
-                        hits = hits + v;
-                        double v1 = values[1][i];
-                        if (Double.isNaN(v1)) {
-                            v1 = 0;
+                        double hits = 0;
+                        double total = 0;
+                        try {
+                            dp.processData();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
-                        total = total + v1;
-                    }
-                    double average = hits == 0 ? 0 : total / hits;
-
-                    htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
-                    htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
-                    htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
-                    htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
-
-                    for (int i = 0; i < CounterTimeSlot.times.length + 1; i++) {
-                        double result = 0;
-                        for (int j = 0; j < cnt; j++) {
-                            double v = values[i + 2][j];
+                        double[][] values = dp.getValues();
+                        int cnt = values[0].length;
+                        for (int i = 0; i < cnt; i++) {
+                            double v = values[0][i];
                             if (Double.isNaN(v)) {
                                 v = 0;
                             }
-                            result = result + v;
+                            hits = hits + v;
+                            double v1 = values[1][i];
+                            if (Double.isNaN(v1)) {
+                                v1 = 0;
+                            }
+                            total = total + v1;
                         }
+                        double average = hits == 0 ? 0 : total / hits;
 
-                        htmlReport.append("<TD>" + String.format("%16.0f", result) + "</TD>");
-                    }
-                    htmlReport.append("</TR>");
-                    break;
-                case GAUGE:
-                    break;
-                default:
-                    break;
+                        htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
+                        htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
+                        htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
+                        htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+
+                        for (int i = 0; i < CounterTimeSlot.times.length; i++) {
+                            double result = 0;
+                            for (int j = 0; j < cnt; j++) {
+                                double v = values[i + 2][j];
+                                if (Double.isNaN(v)) {
+                                    v = 0;
+                                }
+                                result = result + v;
+                            }
+
+                            htmlReport.append("<TD>" + String.format("%16.0f", result) + "</TD>");
+                        }
+                        htmlReport.append("</TR>");
+                        break;
+                    case GAUGE:
+                        break;
+                    default:
+                        break;
+                }
             }
+            htmlReport.append("</TBODY>");
+            htmlReport.append("</TABLE>");
+        } finally {
+            HISTOGRAM.unbindContext(reportItem.category);
         }
-        htmlReport.append("</TBODY>");
-        htmlReport.append("</TABLE>");
     }
 
+    private static final IndexSeries TABLE = IndexFactory.registerIndexSeries("PRF.RPT.TBL", IndexType.INSPECTION);
+
     private void buildPerfTable(Range reportRange, PerfTableItemType reportItem, StringBuilder htmlReport) {
-        IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
-        if (category == null) {
-            return;
-        }
-        if (!(category instanceof PerfIndexSeriesImpl)) {
-            return;
-        }
-        PerfIndexSeriesImpl indexSeries = (PerfIndexSeriesImpl) category;
-        htmlReport.append("<label>" + category.getName() + "</label>");
-        htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
-        htmlReport.append("<THEAD>");
-        htmlReport.append("<TR>");
+        TABLE.bindContext(reportItem.category);
+        try {
+            IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
+            if (category == null) {
+                return;
+            }
+            if (!(category instanceof PerfIndexSeriesImpl)) {
+                return;
+            }
+            PerfIndexSeriesImpl indexSeries = (PerfIndexSeriesImpl) category;
+            htmlReport.append("<label>" + category.getName() + "</label>");
+            htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
+            htmlReport.append("<THEAD>");
+            htmlReport.append("<TR>");
 
-        StringBuilder firstHead = new StringBuilder();
-        StringBuilder secondHead = new StringBuilder();
-        int colspan = 0;
-        secondHead.append("<TH class=sorttable_string>name</TH>");
-        secondHead.append("<TH class=sorttable_numeric>hits</TH>");
-        secondHead.append("<TH class=sorttable_numeric>total (ms)</TH>");
-        secondHead.append("<TH class=sorttable_numeric>avg (ms)</TH>");
-        colspan += 4;
-        if (indexSeries.isSupportCPU()) {
-            secondHead.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
-            secondHead.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
-            colspan += 2;
-        }
+            StringBuilder firstHead = new StringBuilder();
+            StringBuilder secondHead = new StringBuilder();
+            int colspan = 0;
+            secondHead.append("<TH class=sorttable_string>name</TH>");
+            secondHead.append("<TH class=sorttable_numeric>hits</TH>");
+            secondHead.append("<TH class=sorttable_numeric>total (s)</TH>");
+            secondHead.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+            colspan += 4;
+            if (indexSeries.isSupportCPU()) {
+                secondHead.append("<TH class=sorttable_numeric>total cpu (s)</TH>");
+                secondHead.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
+                colspan += 2;
+            }
 
-        firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + indexSeries.getName() + "</TH>");
+            firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + indexSeries.getName() + "</TH>");
 
-        for (String ixName : indexSeries.getChildSeries()) {
-            PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
-            if (ix != null) {
+            IndexFactoryImpl factory = (IndexFactoryImpl) IndexFactory.getFactory();
+            for (String ixName : indexSeries.getChildSeries()) {
                 colspan = 0;
                 secondHead.append("<TH class=sorttable_numeric>hits</TH>");
-                secondHead.append("<TH class=sorttable_numeric>total (ms)</TH>");
+                secondHead.append("<TH class=sorttable_numeric>total (s)</TH>");
                 secondHead.append("<TH class=sorttable_numeric>avg (ms)</TH>");
                 colspan += 3;
-                if (ix.isSupportCPU()) {
-                    secondHead.append("<TH class=sorttable_numeric>total cpu (ms)</TH>");
+                if (factory.isCpuSupported(ixName)) {
+                    secondHead.append("<TH class=sorttable_numeric>total cpu (s)</TH>");
                     secondHead.append("<TH class=sorttable_numeric>cpu avg (ms)</TH>");
                     colspan += 2;
                 }
-                firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + ix.getName() + "</TH>");
+                firstHead.append("<TH colSpan=\"" + Integer.toString(colspan) + "\">" + ixName + "</TH>");
             }
-        }
-        htmlReport.append(firstHead);
-        htmlReport.append("</TR>");
-        htmlReport.append("<TR>");
-        htmlReport.append(secondHead);
-        htmlReport.append("</TR>");
-        htmlReport.append("</THEAD>");
-        htmlReport.append("<TBODY>");
-        IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-        java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
-        for (org.lex.perf.api.index.Index indexIt : indexes) {
-            Index index = ((IndexImpl) indexIt).getIndex();
-            int slotDuration = index.getSlotDuration();
-            long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
-            long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
-            DataProcessor dp = new DataProcessor(startTime, endTime);
-            dp.setStep(slotDuration / 1000);
-            switch (category.getIndexType()) {
-                case COUNTER:
-                case INSPECTION:
-                    Counter counter = (Counter) index;
-                    dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
-                    dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
-                    if (indexSeries.isSupportCPU()) {
-                        dp.addDatasource("totalcpu", counter.getFileName(), "totalcpu", ConsolFun.TOTAL);
-                    }
+            htmlReport.append(firstHead);
+            htmlReport.append("</TR>");
+            htmlReport.append("<TR>");
+            htmlReport.append(secondHead);
+            htmlReport.append("</TR>");
+            htmlReport.append("</THEAD>");
+            htmlReport.append("<TBODY>");
+            IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
+            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+            for (org.lex.perf.api.index.Index indexIt : indexes) {
+                Index index = ((IndexImpl) indexIt).getIndex();
+                int slotDuration = index.getSlotDuration();
+                long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
+                long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
+                DataProcessor dp = new DataProcessor(startTime, endTime);
+                dp.setStep(slotDuration / 1000);
+                switch (category.getIndexType()) {
+                    case COUNTER:
+                    case INSPECTION:
+                        Counter counter = (Counter) index;
+                        dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
+                        dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
+                        if (indexSeries.isSupportCPU()) {
+                            dp.addDatasource("totalcpu", counter.getFileName(), "totalcpu", ConsolFun.TOTAL);
+                        }
 
-                    for (String ixName : indexSeries.getChildSeries()) {
-                        PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
-                        if (ix != null) {
+                        for (String ixName : indexSeries.getChildSeries()) {
                             dp.addDatasource(ixName + "_hits", counter.getFileName(), ixName + "_hits", ConsolFun.TOTAL);
                             dp.addDatasource(ixName + "_total", counter.getFileName(), ixName + "_total", ConsolFun.TOTAL);
 
-                            if (ix.isSupportCPU()) {
+                            if (factory.isCpuSupported(ixName)) {
                                 dp.addDatasource(ixName + "_totalcpu", counter.getFileName(), ixName + "_totalcpu", ConsolFun.TOTAL);
                             }
                         }
-                    }
 
 
-                    try {
-                        dp.processData();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    double[][] values = dp.getValues();
-                    double[] res = sumTotal(values);
-
-                    int idx = 0;
-                    htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
-                    htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
-                    boolean supportCPU = indexSeries.isSupportCPU();
-
-                    idx = append(htmlReport, supportCPU, res, idx);
-
-
-                    for (String ixName : indexSeries.getChildSeries()) {
-                        PerfIndexSeriesImpl ix = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(ixName);
-                        if (ix != null) {
-                            idx = append(htmlReport, ix.isSupportCPU(), res, idx);
+                        try {
+                            dp.processData();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
-                    }
 
-                    htmlReport.append("</TR>");
-                    break;
-                case GAUGE:
-                    break;
-                default:
-                    break;
+                        double[][] values = dp.getValues();
+                        double[] res = sumTotal(values);
+
+                        int idx = 0;
+                        htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
+                        htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
+                        boolean supportCPU = indexSeries.isSupportCPU();
+
+                        idx = append(htmlReport, supportCPU, res, idx);
+
+
+                        for (String ixName : indexSeries.getChildSeries()) {
+                            idx = append(htmlReport, factory.isCpuSupported(ixName), res, idx);
+                        }
+
+                        htmlReport.append("</TR>");
+                        break;
+                    case GAUGE:
+                        break;
+                    default:
+                        break;
+                }
             }
+            htmlReport.append("</TBODY>");
+            htmlReport.append("</TABLE>");
+        } finally {
+            TABLE.unbindContext(reportItem.category);
         }
-        htmlReport.append("</TBODY>");
-        htmlReport.append("</TABLE>");
-
     }
 
     private int append(StringBuilder htmlReport, boolean supportCPU, double[] res, int idx) {
         double hits = res[idx++];
         htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
         double total = res[idx++];
-        htmlReport.append("<TD>" + String.format("%16.0f", total) + "</TD>");
+        htmlReport.append("<TD>" + String.format("%16.3f", total / 1000 / 1000 / 1000) + "</TD>");
         double average = hits == 0 ? 0 : total / hits;
         htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
         if (supportCPU) {
             double totalCPU = res[idx++];
-            htmlReport.append("<TD>" + String.format("%16.0f", totalCPU) + "</TD>");
+            htmlReport.append("<TD>" + String.format("%16.3f", totalCPU / 1000 / 1000 / 1000) + "</TD>");
             double averageCPU = hits == 0 ? 0 : totalCPU / hits;
             htmlReport.append("<TD>" + String.format("%16.3f", averageCPU / 1000 / 1000) + "</TD>");
         }

@@ -5,4 +5,5 @@
     <HistogramTable category="GLOBAL"/>
     <HistogramTable category="HTTP"/>
     <PerfTable category="HTTP"/>
+    <PerfTable category="PRF.RPT.GRPH"/>
 </Report>

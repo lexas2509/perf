@@ -13,8 +13,8 @@ public class GaugeIndexImpl extends IndexImpl {
 
     private final Gauge gauge;
 
-    public GaugeIndexImpl(EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
-        super(engine, indexSeries, indexName);
+    public GaugeIndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
+        super(indexFactory, engine, indexSeries, indexName);
         gauge = new Gauge(engine, indexSeries, indexName);
     }
 
