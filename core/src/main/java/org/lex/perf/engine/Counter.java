@@ -18,7 +18,7 @@ public class Counter extends Index<CounterTimeSlot> {
     protected RrdDef getRrdDef() {
         RrdDef rrdDef = new RrdDef(fileName);
         rrdDef.setStartTime(sampleTime.get() / 1000);
-        LOGGER.warn("start " + indexName + ":" + Long.toString(rrdDef.getStartTime()));
+        LOGGER.debug("start " + indexName + ":" + Long.toString(rrdDef.getStartTime()));
         int step = slotDuration / 1000;
         rrdDef.addDatasource("hits", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);
         rrdDef.addDatasource("total", DsType.ABSOLUTE, step, 0, Double.MAX_VALUE);

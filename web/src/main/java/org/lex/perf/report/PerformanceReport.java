@@ -352,11 +352,12 @@ public class PerformanceReport implements HttpItem {
                         htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
                         boolean supportCPU = indexSeries.isSupportCPU();
 
-                        idx = append(htmlReport, supportCPU, res, idx);
+                        double hits = res[idx];
+                        idx = append(htmlReport, supportCPU, res, idx, 1);
 
 
                         for (String ixName : indexSeries.getChildSeries()) {
-                            idx = append(htmlReport, factory.isCpuSupported(ixName), res, idx);
+                            idx = append(htmlReport, factory.isCpuSupported(ixName), res, idx, hits);
                         }
 
                         htmlReport.append("</TR>");
@@ -374,9 +375,9 @@ public class PerformanceReport implements HttpItem {
         }
     }
 
-    private int append(StringBuilder htmlReport, boolean supportCPU, double[] res, int idx) {
+    private int append(StringBuilder htmlReport, boolean supportCPU, double[] res, int idx, double multiply) {
         double hits = res[idx++];
-        htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
+        htmlReport.append("<TD>" + String.format("%16.0f", hits / (multiply == 0 ? 1 : multiply)) + "</TD>");
         double total = res[idx++];
         htmlReport.append("<TD>" + String.format("%16.3f", total / 1000 / 1000 / 1000) + "</TD>");
         double average = hits == 0 ? 0 : total / hits;

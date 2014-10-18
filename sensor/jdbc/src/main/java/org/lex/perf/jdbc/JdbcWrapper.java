@@ -20,6 +20,7 @@ package org.lex.perf.jdbc;
 
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.api.factory.IndexType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class JdbcWrapper {
     private final static Logger LOGGER = LoggerFactory.getLogger(JdbcWrapper.class);
 
-    private final static IndexSeries SQL = IndexFactory.getIndexSeries("SQL");
+    private final static IndexSeries SQL = IndexFactory.registerIndexSeries("SQL", IndexType.INSPECTION);
     /**
      * Instance singleton de JdbcWrapper (ici on ne connaît pas le ServletContext).
      */
@@ -293,7 +294,7 @@ public final class JdbcWrapper {
         }
     }
 
-    private JdbcWrapper(IndexSeries sqlCounter) {
+    public JdbcWrapper(IndexSeries sqlCounter) {
         super();
         assert sqlCounter != null;
         this.sqlCounter = sqlCounter;
@@ -718,7 +719,7 @@ public final class JdbcWrapper {
         assert connection != null;
         // même si le counter sql n'est pas affiché on crée un proxy de la connexion
         // pour avoir les graphiques USED_CONNECTION_COUNT et ACTIVE_CONNECTION_COUNT (cf issue 160)
-        if (sqlCounter.isActive()) {
+        if (!sqlCounter.isActive()) {
             return connection;
         }
         // on limite la taille pour éviter une éventuelle saturation mémoire

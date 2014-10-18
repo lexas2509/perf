@@ -18,7 +18,7 @@ public class IndexTest {
         for (long i = start; i < start + 1000000; i++) {
             CounterTimeSlot ts = r.getTimeSlot(i);
             if (ts.getEndTime() > i && ts.getStartTime() <= i) {
-                ts.addHit(9, 0);
+                ts.addHit(9);
             } else {
                 fail(Long.toString(i - start));
             }

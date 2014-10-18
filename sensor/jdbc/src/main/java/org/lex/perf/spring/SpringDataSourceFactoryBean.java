@@ -18,6 +18,8 @@
  */
 package org.lex.perf.spring;
 
+import org.lex.perf.api.factory.IndexFactory;
+import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.jdbc.JdbcWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import javax.sql.DataSource;
 public class SpringDataSourceFactoryBean extends AbstractFactoryBean {
     private final static Logger LOGGER = LoggerFactory.getLogger(SpringDataSourceFactoryBean.class);
     private String targetName;
+    private String name;
 
     // exemple :
     //	<bean id="wrappedDataSource" class="net.bull.javamelody.SpringDataSourceFactoryBean">
@@ -67,7 +70,8 @@ public class SpringDataSourceFactoryBean extends AbstractFactoryBean {
         final DataSource dataSource = (DataSource) getBeanFactory().getBean(targetName,
                 DataSource.class);
         JdbcWrapper.registerSpringDataSource(targetName, dataSource);
-        final DataSource result = JdbcWrapper.SINGLETON.createDataSourceProxy(targetName,
+        JdbcWrapper jdbcWrapper = name == null ? JdbcWrapper.SINGLETON : new JdbcWrapper(IndexFactory.registerIndexSeries(name, IndexType.INSPECTION));
+        final DataSource result = jdbcWrapper.createDataSourceProxy(targetName,
                 dataSource);
         LOGGER.debug("Spring target datasource wrapped: " + targetName);
         return result;
@@ -79,5 +83,9 @@ public class SpringDataSourceFactoryBean extends AbstractFactoryBean {
     @Override
     public Class<?> getObjectType() {
         return DataSource.class;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -3,7 +3,12 @@
     <Graph category="JVM" item="Heap"/>
     <Graph category="GLOBAL" item="http"/>
     <HistogramTable category="GLOBAL"/>
+    <HistogramTable category="GRACE"/>
     <HistogramTable category="HTTP"/>
+    <HistogramTable category="SQL"/>
     <PerfTable category="HTTP"/>
+    <PerfTable category="GRACE"/>
+    <PerfTable category="SQL"/>
+
     <PerfTable category="PRF.RPT.GRPH"/>
 </Report>

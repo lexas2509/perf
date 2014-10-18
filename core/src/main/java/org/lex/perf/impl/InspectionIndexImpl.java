@@ -101,21 +101,22 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
             childCPUDuration += it.duration;
         }
 
-        event.own.duration = duration - childDuration;
-        event.own.cpuDuration = durationCPU - childCPUDuration;
+        event.own.duration = duration;
+        event.own.cpuDuration = durationCPU;
 
         // Заполняем данные parent-ового контекста
         if (parent != null) {
             String[] childSeries = this.perfIndexSeries.getChildSeries();
             for (int i = 0; i < childDurations.length; i++) {
-                addDurationToParent(parent, childDurations[i], childSeries[i]);
+                Duration childDuration1 = childDurations[i];
+                addDurationToParent(parent, childDuration1.count, childDuration1.duration, childDuration1.cpuDuration, childSeries[i]);
             }
-            addDurationToParent(parent, event.own, this.getIndexSeries().getName());
+            addDurationToParent(parent, 1, duration - childDuration, durationCPU - childCPUDuration, this.getIndexSeries().getName());
         }
         ringBuffer.publish(sequence);
     }
 
-    private void addDurationToParent(InspectionElement parent, Duration childDuration, String childSeries) {
+    private void addDurationToParent(InspectionElement parent, long count, long duration, long cpuDuration, String childSeries) {
         List<String> mapsTo = indexFactory.getMapsTo(childSeries);
         int idx = -1;
         for (String s : mapsTo) {
@@ -130,8 +131,8 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
             return;
         }
         Duration foundChild = parent.childDurations[idx];
-        foundChild.count += childDuration.count;
-        foundChild.duration += childDuration.duration;
-        foundChild.cpuDuration += childDuration.cpuDuration;
+        foundChild.count += count;
+        foundChild.duration += duration;
+        foundChild.cpuDuration += cpuDuration;
     }
 }

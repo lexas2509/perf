@@ -43,7 +43,7 @@ public abstract class Index<T extends TimeSlot> {
         this.engine = engine;
         this.category = category;
         this.indexName = name;
-        fileName = engine.getWorkingDirectory() + "/" + EngineImpl.getCategoryPrefix(category) + "-" + EngineImpl.encodeIndexName(indexName) + ".rrd";
+        fileName = engine.getWorkingDirectory() + "/" + EngineImpl.getCategoryPrefix(category) + "-" + engine.getIndexFileName(category, indexName) + ".rrd";
         sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
 
         try {
@@ -54,6 +54,8 @@ public abstract class Index<T extends TimeSlot> {
                     if (!checkRrdDef(rrdDef, rrdDb.getRrdDef())) {
                         rrdDb = null;
                     }
+                } catch (IOException e) {
+                    rrdDb = null;
                 } catch (RuntimeException e) {
                     rrdDb = null;
                 }

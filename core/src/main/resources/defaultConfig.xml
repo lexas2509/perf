@@ -16,11 +16,27 @@
         </childSeries>
     </IndexSeries>
 
+    <IndexSeries name="SQL" allowCPU="false" allowHistogramm="true">
+        <childSeries>
+        </childSeries>
+        <mapsTo>
+            <mapsTo name="SQL"/>
+        </mapsTo>
+    </IndexSeries>
+
+    <IndexSeries name="GRACE" allowCPU="true" allowHistogramm="true">
+        <childSeries>
+            <childIndexSeries name="SQL"/>
+            <childIndexSeries name="GRACE"/>
+        </childSeries>
+        <mapsTo>
+            <mapsTo name="GRACE"/>
+        </mapsTo>
+    </IndexSeries>
 
     <IndexSeries name="HTTP" allowCPU="true" allowHistogramm="true">
         <childSeries>
             <childIndexSeries name="SQL"/>
-            <childIndexSeries name="PERF"/>
         </childSeries>
     </IndexSeries>
 

@@ -30,9 +30,9 @@ public class CounterTimeSlot extends TimeSlot {
         }
     }
 
-    public void addHit(long duration, long cpuDuration) {
+    public void addHit(long duration) {
         Duration own = new Duration();
-        own.duration = duration;
+        own.duration = duration * 1000 * 1000;
         addHit(own, null);
     }
 
@@ -67,11 +67,15 @@ public class CounterTimeSlot extends TimeSlot {
         }
 
         // сохраним данные по вложенным сериям
-        if (childsSeries.length > 0) {
+        if ((childsSeries.length > 0) && (childDurations != null) && (childs != null)) {
             for (int i = 0; i < childsSeries.length; i++) {
-                childDurations[i].count += childs[i].count;
-                childDurations[i].cpuDuration += childs[i].cpuDuration;
-                childDurations[i].duration += childs[i].duration;
+                Duration childDuration = childDurations[i];
+                Duration child = childs[i];
+                if (childDuration != null && child != null) {
+                    childDuration.count += child.count;
+                    childDuration.cpuDuration += child.cpuDuration;
+                    childDuration.duration += child.duration;
+                }
             }
         }
     }

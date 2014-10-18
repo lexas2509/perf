@@ -36,6 +36,17 @@
                     currentTimeInSec = parseInt(html, 10);
 
                     currentTimeInMin = Math.floor(currentTimeInSec / 60);
+
+                    curStart = start;
+                    curEnd = end;
+
+                    linked = false;
+
+                    if ((curEnd == currentTimeInMin - 1) && (curStart == currentTimeInMin - 1 - 60)) {
+                        linked = true;
+                    }
+
+
                     jQuery("#slider-range").slider({
                         range: true,
                         min: currentTimeInMin - 24 * 60,
@@ -47,12 +58,12 @@
                         }
                     });
 
-                    if (start == 0) {
+                    if (start == 0 || linked) {
                         start = currentTimeInMin - 60;
-                        end = currentTimeInMin
+                        end = currentTimeInMin;
                     }
                     jQuery("#slider-range").slider("values", [start, end]);
-                    refreshSlider()
+                    refreshSlider();
                 }
             });
         }

@@ -53,6 +53,7 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.5</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.lmax</groupId>
@@ -65,7 +66,7 @@
                 <version>1.9</version>
             </dependency>
             <dependency>
-            <groupId>org.testng</groupId>
+                <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>6.1.1</version>
                 <scope>test</scope>
