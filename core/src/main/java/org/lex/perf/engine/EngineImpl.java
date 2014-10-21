@@ -15,7 +15,7 @@ public class EngineImpl implements Engine {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(EngineImpl.class);
 
-    public static final int SAMPLE_DURATION = 5 * 1000; // 5 sec in ms
+    public static final int SAMPLE_DURATION = 15 * 1000; // 15 sec in ms
 
     public static final int MINUTE = 60;
 
@@ -113,12 +113,18 @@ public class EngineImpl implements Engine {
     private synchronized void readIndexFileNames() {
         try {
             FileInputStream fis = new FileInputStream(workingDirectory + "/" + "indexes");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            indexFileNames = (HashMap) ois.readObject();
-            ois.close();
-            fis.close();
+            try {
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                indexFileNames = (HashMap) ois.readObject();
+                ois.close();
+            } finally {
+                fis.close();
+            }
         } catch (Exception e) {
-            LOGGER.warn("", e);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("", e);
+            }
+            LOGGER.warn(e.getMessage());
         }
         changed = false;
     }
