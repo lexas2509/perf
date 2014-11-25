@@ -34,5 +34,11 @@ public class HTTPReportServlet extends HTTPServlet {
         httpItems.put("/css/jquery-ui.css", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/jquery-ui.css"));
         httpItems.put("/js/jquery-1.9.1.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/jquery-1.9.1.js"));
         httpItems.put("/js/jquery-ui.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/jquery-ui.js"));
+
+        httpItems.put("/js/sorttable.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/sorttable.js"));
+        httpItems.put("/js/prototype.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/prototype.js"));
+        httpItems.put("/js/effects.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/effects.js"));
+        httpItems.put("/js/resizable_tables.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/resizable_tables.js"));
+        httpItems.put("/css/monitoring.js", new ClassLoaderResourceHttpItem("org/lex/perf/web/report/monitoring.css"));
     }
 }
