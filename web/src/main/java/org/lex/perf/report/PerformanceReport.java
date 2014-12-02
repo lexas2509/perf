@@ -165,7 +165,7 @@ public class PerformanceReport implements HttpItem {
                 return;
             }
             htmlReport.append("<label>" + category.getName() + "</label>");
-            htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
+            htmlReport.append("<TABLE class=\"sortable, histogramm\" border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
             htmlReport.append("<THEAD>");
             htmlReport.append("<TR>");
             htmlReport.append("<TH>Request</TH>");
