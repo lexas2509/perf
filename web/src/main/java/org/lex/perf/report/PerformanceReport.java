@@ -169,14 +169,14 @@ public class PerformanceReport implements HttpItem {
             htmlReport.append("<THEAD>");
             htmlReport.append("<TR>");
             htmlReport.append("<TH>Request</TH>");
-            htmlReport.append("<TH class=sorttable_numeric>hits</TH>");
-            htmlReport.append("<TH class=sorttable_numeric>avg (ms)</TH>");
+            htmlReport.append("<TH class=\"sorttable_numeric, column\">hits</TH>");
+            htmlReport.append("<TH class=\"sorttable_numeric, column\">avg (ms)</TH>");
             for (int i = 0; i < CounterTimeSlot.times.length - 1; i++) {
                 String s = "&lt;" + CounterTimeSlot.times[i + 1];
-                htmlReport.append("<TH class=sorttable_numeric>" + s + "ms</TH>");
+                htmlReport.append("<TH class=\"sorttable_numeric, column\">" + s + "ms</TH>");
             }
 
-            htmlReport.append("<TH class=sorttable_numeric>&gt;" + CounterTimeSlot.times[CounterTimeSlot.times.length - 1] + "ms </TH>");
+            htmlReport.append("<TH class=\"sorttable_numeric, column\">&gt;" + CounterTimeSlot.times[CounterTimeSlot.times.length - 1] + "ms </TH>");
             htmlReport.append("</TR>");
             htmlReport.append("</THEAD>");
             htmlReport.append("<TBODY>");
@@ -224,8 +224,8 @@ public class PerformanceReport implements HttpItem {
 
                         htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
                         htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
-                        htmlReport.append("<TD>" + String.format("%16.0f", hits) + "</TD>");
-                        htmlReport.append("<TD>" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
+                        htmlReport.append("<TD class=\"numeric\">" + String.format("%16.0f", hits) + "</TD>");
+                        htmlReport.append("<TD class=\"numeric\">" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
 
                         for (int i = 0; i < CounterTimeSlot.times.length; i++) {
                             double result = 0;
@@ -237,7 +237,7 @@ public class PerformanceReport implements HttpItem {
                                 result = result + v;
                             }
 
-                            htmlReport.append("<TD>" + String.format("%16.0f", result) + "</TD>");
+                            htmlReport.append("<TD class=\"numeric\">" + String.format("%16.0f", result) + "</TD>");
                         }
                         htmlReport.append("</TR>");
                         break;

@@ -156,6 +156,19 @@ public abstract class Index<T extends TimeSlot> {
             if (rrdDb.getLastUpdateTime() >= currentTime) {
                 new Object();
             }
+
+            // TODO:
+            // 13:06:22.316 [Timer-0] ERROR org.lex.perf.engine.EngineImpl - error
+            //java.lang.IllegalArgumentException: Bad sample time: 1415869500. Last update time was 1415869515, at least one second step is required
+            //at org.rrd4j.core.RrdDb.store(RrdDb.java:553) ~[RrdDb.class:na]
+            //at org.rrd4j.core.Sample.update(Sample.java:197) ~[Sample.class:na]
+            //at org.lex.perf.engine.Index.flush(Index.java:159) ~[Index.class:na]
+            //at org.lex.perf.engine.Index.doSample(Index.java:207) ~[Index.class:na]
+            //at org.lex.perf.engine.EngineImpl$1.run(EngineImpl.java:49) ~[EngineImpl$1.class:na]
+            //at java.util.TimerThread.mainLoop(Timer.java:555) [na:1.7.0_45]
+            //at java.util.TimerThread.run(Timer.java:505) [na:1.7.0_45]
+
+
             sample.update();
         } catch (IOException e) {
             throw new RuntimeException(e);

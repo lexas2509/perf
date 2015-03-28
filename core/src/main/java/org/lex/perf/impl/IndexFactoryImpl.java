@@ -1,11 +1,17 @@
 package org.lex.perf.impl;
 
+import com.lmax.disruptor.EventFactory;
+import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
 import org.lex.perf.config.*;
+import org.lex.perf.engine.CounterTimeSlot;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.sensor.SensorEngine;
 import org.lex.perf.util.JAXBUtil;
@@ -15,10 +21,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
 /**
  */
 public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
+
+    public static final int MAX_CHILD_SERIES_LENGTH = 3;
+    private final java.util.concurrent.Executor executor;
+
+    private final Disruptor<PerfIndexSeriesImpl.IndexEvent> disruptor;
+
 
     private SensorEngine sensorEngine;
 
@@ -33,7 +46,30 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         config = JAXBUtil.getObject(contextPath, "defaultConfig.xml");
         engine = new EngineImpl();
         sensorEngine = new SensorEngine(engine);
+
+        // create asynchronous handler (based on disruptor)
+        executor = Executors.newSingleThreadExecutor();
+        disruptor = new Disruptor<PerfIndexSeriesImpl.IndexEvent>(INDEX_EVENT_FACTORY,
+                16384, executor, ProducerType.MULTI, new SleepingWaitStrategy());
+        disruptor.handleEventsWith(handler);
+        disruptor.start();
+
     }
+
+    public final EventFactory<PerfIndexSeriesImpl.IndexEvent> INDEX_EVENT_FACTORY = new EventFactory<PerfIndexSeriesImpl.IndexEvent>() {
+        @Override
+        public PerfIndexSeriesImpl.IndexEvent newInstance() {
+            return new PerfIndexSeriesImpl.IndexEvent(MAX_CHILD_SERIES_LENGTH);
+        }
+    };
+
+    private final EventHandler<PerfIndexSeriesImpl.IndexEvent> handler = new EventHandler<PerfIndexSeriesImpl.IndexEvent>() {
+        public void onEvent(final PerfIndexSeriesImpl.IndexEvent event, final long sequence, final boolean endOfBatch) throws Exception {
+            CounterTimeSlot ts = event.counter.getTimeSlot(event.requestTime);
+            ts.addHit(event.own, event.childsDurations);
+        }
+    };
+
 
     @Override
     public Index getIndex(IndexSeries indexSeries, String indexName) {
@@ -138,5 +174,9 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             result.add(m.getName());
         }
         return result;
+    }
+
+    public Disruptor<PerfIndexSeriesImpl.IndexEvent> getDisruptor() {
+        return disruptor;
     }
 }

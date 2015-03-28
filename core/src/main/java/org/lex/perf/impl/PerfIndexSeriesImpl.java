@@ -22,15 +22,17 @@ import java.util.concurrent.Executors;
  */
 public class PerfIndexSeriesImpl extends IndexSeriesImpl {
 
-    private final java.util.concurrent.Executor executor;
-    private final Disruptor<IndexEvent> disruptor;
 
     private String[] childSeries;
     private final Boolean supportCPU;
     private boolean supportHistogramm;
 
+    private IndexFactoryImpl indexFactory;
+
     public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name, IndexType indexType) {
         super(name, indexType);
+
+        this.indexFactory = indexFactory;
 
         // detect configuration of series
         Config config = indexFactory.getConfig();
@@ -59,12 +61,6 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
         }
         this.childSeries = childs.toArray(new String[childs.size()]);
 
-        // create asynchronous handler (based on disruptor)
-        executor = Executors.newSingleThreadExecutor();
-        disruptor = new Disruptor<IndexEvent>(INDEX_EVENT_FACTORY,
-                16384, executor, ProducerType.MULTI, new SleepingWaitStrategy());
-        disruptor.handleEventsWith(handler);
-        disruptor.start();
     }
 
     private static <T> T coalesce(T... a) {
@@ -104,21 +100,9 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
         }
     }
 
-    public final EventFactory<IndexEvent> INDEX_EVENT_FACTORY = new EventFactory<IndexEvent>() {
-        @Override
-        public IndexEvent newInstance() {
-            return new IndexEvent(childSeries.length);
-        }
-    };
-
-    private final EventHandler<IndexEvent> handler = new EventHandler<IndexEvent>() {
-        public void onEvent(final IndexEvent event, final long sequence, final boolean endOfBatch) throws Exception {
-            CounterTimeSlot ts = event.counter.getTimeSlot(event.requestTime);
-            ts.addHit(event.own, event.childsDurations);
-        }
-    };
 
     public Disruptor<IndexEvent> getDisruptor() {
-        return disruptor;
+        return indexFactory.getDisruptor();
     }
 }
+

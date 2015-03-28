@@ -21,7 +21,7 @@ public class HTTPFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         try {
-            servletName = "HTTP";
+            servletName = filterConfig.getServletContext().getServletContextName();
             IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
         } catch (Error error) {
             LOGGER.error("", error);

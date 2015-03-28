@@ -154,7 +154,12 @@ form {
     }
 }
 
-.vertical-text {
-    transform: rotate(90deg);
-    transform-origin: left top 0;
+
+.histogramm .numeric {
+    font-size: 8pt;
+    text-align: right;
+}
+
+.histogramm .column {
+    font-size: 8pt;
 }
