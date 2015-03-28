@@ -1,21 +1,19 @@
 package org.lex.perf.impl;
 
-import com.lmax.disruptor.EventFactory;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.dsl.ProducerType;
 import org.lex.perf.api.factory.IndexSeriesImpl;
 import org.lex.perf.api.factory.IndexType;
+import org.lex.perf.api.index.InspectionIndex;
 import org.lex.perf.config.ChildIndexSeriesType;
 import org.lex.perf.config.ChildSeriesType;
 import org.lex.perf.config.Config;
 import org.lex.perf.config.InspectionIndexSeriesType;
 import org.lex.perf.engine.Counter;
 import org.lex.perf.engine.CounterTimeSlot;
+import org.lex.perf.engine.Duration;
 
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
+import java.util.Stack;
 
 /**
  * Created by Алексей on 18.09.2014.
@@ -28,6 +26,14 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
     private boolean supportHistogramm;
 
     private IndexFactoryImpl indexFactory;
+
+    public final static ThreadLocal<Stack<InspectionIndex>> inspections = new ThreadLocal<Stack<InspectionIndex>>() {
+        @Override
+        protected Stack<InspectionIndex> initialValue() {
+            return new Stack<InspectionIndex>();
+        }
+    };
+
 
     public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name, IndexType indexType) {
         super(name, indexType);
@@ -84,6 +90,14 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
         return supportHistogramm;
     }
 
+    public IndexType getIndexType() {
+        return indexType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public static class IndexEvent {
         Counter counter;
 
@@ -98,6 +112,19 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
                 childsDurations[i] = new Duration();
             }
         }
+    }
+
+    @Override
+    public void bindContext(String contextName) {
+        InspectionIndex index = (InspectionIndex) indexFactory.getIndex(this, contextName);
+        inspections.get().push(index);
+        index.bindContext();
+    }
+
+    @Override
+    public void unBindContext() {
+        InspectionIndex index = inspections.get().pop();
+        index.unBindContext();
     }
 
 

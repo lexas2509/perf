@@ -15,7 +15,7 @@ public class JVMGauges {
     public static final IndexSeries JVM = IndexFactory.registerIndexSeries("JVM", IndexType.GAUGE);
 
     static {
-        IndexFactory.getFactory().registerGauge(new org.lex.perf.sensor.CPUSensor());
-        IndexFactory.getFactory().registerGauge(new org.lex.perf.sensor.HeapSensor());
+        IndexFactory.registerGauge(JVM, new org.lex.perf.sensor.CPUSensor());
+        IndexFactory.registerGauge(JVM, new org.lex.perf.sensor.HeapSensor());
     }
 }

@@ -1,5 +1,7 @@
 package org.lex.perf.api.index;
 
+import org.lex.perf.api.factory.IndexSeries;
+
 import java.math.BigDecimal;
 
 /**
@@ -10,4 +12,6 @@ public interface GaugeIndex extends Index {
     public BigDecimal[] getValues();
 
     String[] getItems();
+
+    void setIndexSeries(IndexSeries indexSeries);
 }

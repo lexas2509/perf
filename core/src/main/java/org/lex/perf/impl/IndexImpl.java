@@ -1,6 +1,7 @@
 package org.lex.perf.impl;
 
 import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.api.factory.IndexSeriesImpl;
 import org.lex.perf.api.index.Index;
 import org.lex.perf.engine.EngineImpl;
 
@@ -13,30 +14,25 @@ public abstract class IndexImpl implements Index {
 
     protected final String indexName;
 
-    protected final IndexSeries indexSeries;
+    protected final PerfIndexSeriesImpl indexSeries;
 
     protected final IndexFactoryImpl indexFactory;
 
-    protected boolean isActive = true;
-
-    public IndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, IndexSeries indexSeries, String indexName) {
+    public IndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
         this.engine = engine;
         this.indexSeries = indexSeries;
         this.indexName = indexName;
         this.indexFactory = indexFactory;
     }
 
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
-
-    @Override
-    public IndexSeries getIndexSeries() {
+    public PerfIndexSeriesImpl getIndexSeries() {
         return indexSeries;
     }
 
     public abstract org.lex.perf.engine.Index getIndex();
+
+    protected String getFileName() {
+        return indexFactory.getCategoryPrefix(indexSeries) + "-" + engine.getIndexFileName(indexSeries.getName(), indexName);
+    }
 
 }

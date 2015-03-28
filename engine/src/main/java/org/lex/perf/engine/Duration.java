@@ -1,4 +1,4 @@
-package org.lex.perf.impl;
+package org.lex.perf.engine;
 
 /**
  * Created by Алексей on 23.09.2014.

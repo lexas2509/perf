@@ -4,6 +4,7 @@ package org.lex.perf.sensor;
 import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
+import org.lex.perf.api.index.GaugeSensorImpl;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -11,9 +12,7 @@ import java.math.BigDecimal;
 
 /**
  */
-public class CPUSensor implements GaugeIndex {
-
-    private boolean isActive = true;
+public class CPUSensor extends GaugeSensorImpl {
 
     @Override
     public BigDecimal[] getValues() {
@@ -28,22 +27,7 @@ public class CPUSensor implements GaugeIndex {
     }
 
     @Override
-    public IndexSeries getIndexSeries() {
-        return org.lex.perf.sensor.JVMGauges.JVM;
-    }
-
-    @Override
     public String[] getItems() {
         return new String[]{"CPU"};
-    }
-
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
-    @Override
-    public IndexType getIndexType() {
-        return IndexType.GAUGE;
     }
 }

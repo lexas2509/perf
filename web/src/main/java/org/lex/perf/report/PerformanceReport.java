@@ -106,7 +106,7 @@ public class PerformanceReport implements HttpItem {
         try {
             RrdGraphDef graphDef = new RrdGraphDef();
             graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
-            IndexSeries category = IndexFactory.getIndexSeries(graphItem.getCategory());
+            PerfIndexSeriesImpl category = ((IndexFactoryImpl) IndexFactory.getFactory()).getIndexSeries(graphItem.getCategory());
             if (category == null) {
                 return;
             }
@@ -148,7 +148,7 @@ public class PerformanceReport implements HttpItem {
                 htmlReport.append(reportGraph);
             }
         } finally {
-            GRAPH.unbindContext(graphItem.getItem());
+            GRAPH.unBindContext();
         }
     }
 
@@ -157,7 +157,7 @@ public class PerformanceReport implements HttpItem {
     private void buildHistogramTable(Range reportRange, HistogramTableItemType reportItem, StringBuilder htmlReport) {
         HISTOGRAM.bindContext(reportItem.category);
         try {
-            PerfIndexSeriesImpl category = (PerfIndexSeriesImpl) IndexFactory.getIndexSeries(reportItem.getCategory());
+            PerfIndexSeriesImpl category = ((IndexFactoryImpl)IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
             if (category == null) {
                 return;
             }
@@ -250,7 +250,7 @@ public class PerformanceReport implements HttpItem {
             htmlReport.append("</TBODY>");
             htmlReport.append("</TABLE>");
         } finally {
-            HISTOGRAM.unbindContext(reportItem.category);
+            HISTOGRAM.unBindContext();
         }
     }
 
@@ -259,16 +259,12 @@ public class PerformanceReport implements HttpItem {
     private void buildPerfTable(Range reportRange, PerfTableItemType reportItem, StringBuilder htmlReport) {
         TABLE.bindContext(reportItem.category);
         try {
-            IndexSeries category = IndexFactory.getIndexSeries(reportItem.getCategory());
-            if (category == null) {
+            PerfIndexSeriesImpl indexSeries = ((IndexFactoryImpl)IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
+            if (indexSeries == null) {
                 return;
             }
-            if (!(category instanceof PerfIndexSeriesImpl)) {
-                return;
-            }
-            PerfIndexSeriesImpl indexSeries = (PerfIndexSeriesImpl) category;
-            htmlReport.append("<label>" + category.getName() + "</label>");
-            htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + category.getName() + "\" cellPadding=2 width=\"100%\">");
+            htmlReport.append("<label>" + indexSeries.getName() + "</label>");
+            htmlReport.append("<TABLE class=sortable border=1 cellSpacing=0 summary=\"" + indexSeries.getName() + "\" cellPadding=2 width=\"100%\">");
             htmlReport.append("<THEAD>");
             htmlReport.append("<TR>");
 
@@ -310,7 +306,7 @@ public class PerformanceReport implements HttpItem {
             htmlReport.append("</THEAD>");
             htmlReport.append("<TBODY>");
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(indexSeries);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
                 Index index = ((IndexImpl) indexIt).getIndex();
                 int slotDuration = index.getSlotDuration();
@@ -318,7 +314,7 @@ public class PerformanceReport implements HttpItem {
                 long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
                 DataProcessor dp = new DataProcessor(startTime, endTime);
                 dp.setStep(slotDuration / 1000);
-                switch (category.getIndexType()) {
+                switch (indexSeries.getIndexType()) {
                     case COUNTER:
                     case INSPECTION:
                         Counter counter = (Counter) index;
@@ -371,7 +367,7 @@ public class PerformanceReport implements HttpItem {
             htmlReport.append("</TBODY>");
             htmlReport.append("</TABLE>");
         } finally {
-            TABLE.unbindContext(reportItem.category);
+            TABLE.unBindContext();
         }
     }
 

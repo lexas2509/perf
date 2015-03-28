@@ -3,18 +3,46 @@ package org.lex.perf.api.factory;
 /**
  * Created by Алексей on 18.09.2014.
  */
-public interface IndexSeries {
-    String getName();
+public final class IndexSeries {
 
-    IndexType getIndexType();
+    private final String name;
 
-    boolean isActive();
+    private final IndexType indexType;
 
-    String[] getDurations();
+    private IndexSeriesImpl impl;
+    private boolean active;
 
-    void addRequest(String indexName, long eventTime, long duration[]);
+    public IndexSeries(IndexType indexType, String name) {
+        this.indexType = indexType;
+        this.name = name;
+    }
 
-    void bindContext(String contextName);
+    void configure(IndexSeriesImpl impl, boolean active) {
+        this.impl = impl;
+        this.active = active;
+    }
 
-    void unbindContext(String contextName);
+    public String getName() {
+        return name;
+    }
+
+    public IndexType getIndexType() {
+        return indexType;
+    }
+
+    public void bindContext(String contextName) {
+        impl.bindContext(contextName);
+    }
+
+    public void unBindContext() {
+        impl.unBindContext();
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    IndexSeriesImpl getImpl() {
+        return impl;
+    }
 }

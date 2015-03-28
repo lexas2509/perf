@@ -1,6 +1,7 @@
 package org.lex.perf.filter;
 
 import org.lex.perf.api.factory.IndexFactory;
+import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
 import org.slf4j.Logger;
@@ -18,11 +19,13 @@ public class HTTPFilter implements Filter {
 
     private String servletName = "HTTP";
 
+    IndexSeries indexSeries;
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         try {
             servletName = filterConfig.getServletContext().getServletContextName();
-            IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
+            indexSeries = IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
         } catch (Error error) {
             LOGGER.error("", error);
             throw error;
@@ -36,12 +39,11 @@ public class HTTPFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest) {
             String requestURI = ((HttpServletRequest) request).getRequestURI();
-            InspectionIndex index = (InspectionIndex) IndexFactory.getIndex(servletName, requestURI);
-            index.bindContext();
+            indexSeries.bindContext(requestURI);
             try {
                 chain.doFilter(request, response);
             } finally {
-                index.unBindContext();
+                indexSeries.unBindContext();
             }
         } else {
             chain.doFilter(request, response);

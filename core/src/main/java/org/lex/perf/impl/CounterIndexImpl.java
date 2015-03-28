@@ -1,9 +1,9 @@
 package org.lex.perf.impl;
 
-import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.CounterIndex;
 import org.lex.perf.engine.Counter;
 import org.lex.perf.engine.CounterTimeSlot;
+import org.lex.perf.engine.Duration;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.engine.Index;
 
@@ -16,7 +16,9 @@ class CounterIndexImpl extends IndexImpl implements CounterIndex {
 
     CounterIndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
         super(indexFactory, engine, indexSeries, indexName);
-        counter = new Counter(engine, indexSeries, indexName);
+        counter = new Counter(engine, indexName, indexSeries.isSupportCPU(), indexSeries.isSupportHistogramm(),
+                indexSeries.getChildSeries(), getFileName());
+        counter.init();
     }
 
     @Override
@@ -26,11 +28,6 @@ class CounterIndexImpl extends IndexImpl implements CounterIndex {
         dur.duration = duration[0];
         dur.cpuDuration = duration[1];
         timeSlot.addHit(dur, null);
-    }
-
-    @Override
-    public IndexType getIndexType() {
-        return IndexType.COUNTER;
     }
 
     @Override

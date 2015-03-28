@@ -7,6 +7,7 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
+import org.lex.perf.api.factory.IndexSeriesImpl;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
@@ -28,6 +29,7 @@ import java.util.concurrent.Executors;
 public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     public static final int MAX_CHILD_SERIES_LENGTH = 3;
+
     private final java.util.concurrent.Executor executor;
 
     private final Disruptor<PerfIndexSeriesImpl.IndexEvent> disruptor;
@@ -71,8 +73,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     };
 
 
-    @Override
-    public Index getIndex(IndexSeries indexSeries, String indexName) {
+    public Index getIndex(PerfIndexSeriesImpl indexSeries, String indexName) {
         Map<String, Index> categoryIndices = indexes.get(indexSeries.getName());
         if (categoryIndices == null) {
             synchronized (this) {
@@ -88,7 +89,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             synchronized (categoryIndices) {
                 index = categoryIndices.get(indexName);
                 if (index == null) {
-                    index = createIndex((PerfIndexSeriesImpl) indexSeries, indexName);
+                    index = createIndex(indexSeries, indexName);
                     categoryIndices.put(indexName, index);
                 }
             }
@@ -110,18 +111,19 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     }
 
     @Override
-    public void registerGauge(GaugeIndex gaugeIndex) {
+    public void registerGauge(IndexSeriesImpl impl, GaugeIndex gaugeIndex) {
         String[] indexItems = gaugeIndex.getItems();
         GaugeIndexImpl[] gaugeIndexes = new GaugeIndexImpl[indexItems.length];
         int idx = 0;
+
         for (String indexItem : indexItems) {
-            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex(gaugeIndex.getIndexSeries(), indexItem);
+            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex((PerfIndexSeriesImpl)impl, indexItem);
             idx++;
         }
         sensorEngine.addGaugeSensor(gaugeIndex, gaugeIndexes);
     }
 
-    public List<Index> getIndexes(IndexSeries category) {
+    public List<Index> getIndexes(PerfIndexSeriesImpl category) {
         Map<String, Index> indexes = this.indexes.get(category.getName());
         if (indexes == null) {
             return Collections.emptyList();
@@ -129,10 +131,15 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return new ArrayList<Index>(indexes.values());
     }
 
+    Map<String, PerfIndexSeriesImpl> series = new ConcurrentHashMap<String, PerfIndexSeriesImpl>();
     @Override
-    public IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType) {
+    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType) {
         PerfIndexSeriesImpl indexSeries = new PerfIndexSeriesImpl(this, indexSeriesName, indexType);
-        engine.loadIndexesFromDisk(indexSeries);
+        List<String> loadedIndexes = engine.loadIndexesFromDisk(getCategoryPrefix(indexSeries), indexSeriesName);
+        for (String indexName : loadedIndexes) {
+            getIndex(indexSeries, indexName);
+        }
+        series.put(indexSeriesName, indexSeries);
         return indexSeries;
     }
 
@@ -179,4 +186,13 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     public Disruptor<PerfIndexSeriesImpl.IndexEvent> getDisruptor() {
         return disruptor;
     }
+
+    public PerfIndexSeriesImpl getIndexSeries(String category) {
+        return series.get(category);
+    }
+
+    public static String getCategoryPrefix(PerfIndexSeriesImpl category) {
+        return category.getIndexType().name().substring(0, 1) + "-" + category.getName();
+    }
+
 }

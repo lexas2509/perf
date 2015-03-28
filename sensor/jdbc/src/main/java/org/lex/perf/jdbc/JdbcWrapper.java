@@ -416,7 +416,7 @@ public final class JdbcWrapper {
             // (par exemple, seule la méthode close de la connection peut être appelée ce qui ferme aussi le statement)
             // Rq : pas de temps cpu pour les requêtes sql car c'est 0 ou quasiment 0
             ACTIVE_CONNECTION_COUNT.decrementAndGet();
-            sqlCounter.unbindContext(requestName);
+            sqlCounter.unBindContext();
         }
     }
 
@@ -738,10 +738,6 @@ public final class JdbcWrapper {
                     Arrays.asList(new Class<?>[]{Connection.class}));
         }
         return createProxy(connection, invocationHandler);
-    }
-
-    boolean isSqlMonitoringDisabled() {
-        return !sqlCounter.isActive();
     }
 
     Statement createStatementProxy(String query, Statement statement) {

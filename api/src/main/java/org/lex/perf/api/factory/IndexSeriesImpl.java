@@ -5,13 +5,13 @@ import org.lex.perf.api.index.InspectionIndex;
 
 /**
  */
-public class IndexSeriesImpl implements IndexSeries {
+public abstract class IndexSeriesImpl {
 
     public static final String[] DEFAULT = new String[]{"total"};
 
-    private final String name;
+    protected final String name;
 
-    private final IndexType indexType;
+    protected final IndexType indexType;
 
 
     protected IndexSeriesImpl(String name, IndexType indexType) {
@@ -19,41 +19,7 @@ public class IndexSeriesImpl implements IndexSeries {
         this.indexType = indexType;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+    public abstract void bindContext(String contextName);
 
-    @Override
-    public IndexType getIndexType() {
-        return indexType;
-    }
-
-    @Override
-    public String[] getDurations() {
-        return DEFAULT;
-    }
-
-    @Override
-    public boolean isActive() {
-        return true;
-    }
-
-    @Override
-    public void addRequest(String indexName, long eventTime, long[] duration) {
-        org.lex.perf.api.index.Index index = IndexFactory.getFactory().getIndex(this, indexName);
-        ((CounterIndex) index).addRequest(eventTime, duration);
-    }
-
-    @Override
-    public void bindContext(String contextName) {
-        org.lex.perf.api.index.Index index = IndexFactory.getFactory().getIndex(this, contextName);
-        ((InspectionIndex) index).bindContext();
-    }
-
-    @Override
-    public void unbindContext(String contextName) {
-        org.lex.perf.api.index.Index index = IndexFactory.getFactory().getIndex(this, contextName);
-        ((InspectionIndex) index).unBindContext();
-    }
+    public abstract void unBindContext();
 }

@@ -1,7 +1,6 @@
 package org.lex.perf.api.factory;
 
 import org.lex.perf.api.index.GaugeIndex;
-import org.lex.perf.api.index.Index;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,14 +15,6 @@ public abstract class IndexFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(IndexFactory.class);
 
     private static IIndexFactory indexFactory;
-
-    public static Index getIndex(IndexSeries indexSeries, String indexName) {
-        return indexFactory.getIndex(indexSeries, indexName);
-    }
-
-    public static Index getIndex(String indexSeries, String indexName) {
-        return indexFactory.getIndex(getIndexSeries(indexSeries), indexName);
-    }
 
     private static void initFactory() {
         Class cl;
@@ -44,32 +35,31 @@ public abstract class IndexFactory {
         return indexFactory;
     }
 
-    public static IndexSeries[] getIndexSeries() {
-        return INDEX_SERIES.values().toArray(new IndexSeries[]{});
-    }
-
 
     public interface IIndexFactory {
-        public Index getIndex(IndexSeries indexSeries, String indexName);
+        public void registerGauge(IndexSeriesImpl impl, GaugeIndex gaugeIndex);
 
-        public void registerGauge(GaugeIndex gaugeIndex);
-
-        IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType);
+        IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType);
     }
 
     private final static Map<String, IndexSeries> INDEX_SERIES = new ConcurrentHashMap<String, IndexSeries>();
-
-    public static IndexSeries getIndexSeries(String indexSeries) {
-        return INDEX_SERIES.get(indexSeries);
-    }
 
     public static synchronized IndexSeries registerIndexSeries(String indexSeriesName, IndexType indexType) {
         if (INDEX_SERIES.containsKey(indexSeriesName)) {
             return INDEX_SERIES.get(indexSeriesName);
         } else {
-            IndexSeries indexSeries = indexFactory.createIndexSeries(indexSeriesName, indexType);
-            INDEX_SERIES.put(indexSeries.getName(), indexSeries);
+            IndexSeriesImpl indexSeriesImpl = indexFactory.createIndexSeriesImpl(indexSeriesName, indexType);
+            IndexSeries indexSeries = new IndexSeries(indexType, indexSeriesName);
+            indexSeries.configure(indexSeriesImpl, true);
+            INDEX_SERIES.put(indexSeriesName, indexSeries);
             return indexSeries;
         }
     }
+
+    public static void registerGauge(IndexSeries indexSeries, GaugeIndex gaugeIndex) {
+        IndexSeriesImpl indexSeriesImpl = indexSeries.getImpl();
+        getFactory().registerGauge(indexSeriesImpl, gaugeIndex);
+        gaugeIndex.setIndexSeries(indexSeries);
+    }
+
 }

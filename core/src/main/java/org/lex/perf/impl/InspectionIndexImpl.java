@@ -1,9 +1,9 @@
 package org.lex.perf.impl;
 
 import com.lmax.disruptor.RingBuffer;
-import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
 import org.lex.perf.engine.Counter;
+import org.lex.perf.engine.Duration;
 import org.lex.perf.engine.EngineImpl;
 import org.lex.perf.engine.Index;
 import org.lex.perf.util.ThreadUtil;
@@ -40,18 +40,14 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
 
     InspectionIndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
         super(indexFactory, engine, indexSeries, indexName);
-        counter = new Counter(engine, indexSeries, indexName);
+        counter = new Counter(engine, indexName, indexSeries.isSupportCPU(), indexSeries.isSupportHistogramm(), indexSeries.getChildSeries(), getFileName());
+        counter.init();
         perfIndexSeries = indexSeries;
     }
 
     @Override
     public Index getIndex() {
         return counter;
-    }
-
-    @Override
-    public IndexType getIndexType() {
-        return IndexType.INSPECTION;
     }
 
     @Override

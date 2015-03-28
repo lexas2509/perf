@@ -1,8 +1,5 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.factory.IndexFactory;
-import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.impl.PerfIndexSeriesImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +58,8 @@ public class EngineImpl implements Engine {
         readIndexFileNames();
     }
 
-    public void loadIndexesFromDisk(IndexSeries indexSeries) {
-        String categoryPrefix = getCategoryPrefix(indexSeries);
-
+    public List<String> loadIndexesFromDisk(String categoryPrefix, String categoryName) {
+        List<String> loadedIndexes = new ArrayList<String>();
         File[] files = new File(workingDirectory).listFiles();
         if (files != null) {
             for (File file : files) {
@@ -83,17 +79,15 @@ public class EngineImpl implements Engine {
 
 
                 String indexNamePart = fileNamePart1.substring(1, idx);
-                String indexName = getFileIndexName(indexSeries, indexNamePart);
+                String indexName = getFileIndexName(categoryName, indexNamePart);
                 if (indexName != null) {
-                    IndexFactory.getFactory().getIndex(indexSeries, indexName);
+                    loadedIndexes.add(indexName);
                 }
             }
         }
+        return loadedIndexes;
     }
 
-    public static String getCategoryPrefix(IndexSeries category) {
-        return category.getIndexType().name().substring(0, 1) + "-" + category.getName();
-    }
 
     private synchronized void saveIndexFileNames() {
         if (changed) {
@@ -130,11 +124,11 @@ public class EngineImpl implements Engine {
     }
 
 
-    public synchronized String getIndexFileName(PerfIndexSeriesImpl category, String indexName) {
-        HashMap<String, String> categoryIndexes = indexFileNames.get(category.getName());
+    public synchronized String getIndexFileName(String categoryName, String indexName) {
+        HashMap<String, String> categoryIndexes = indexFileNames.get(categoryName);
         if (categoryIndexes == null) {
             categoryIndexes = new HashMap<String, String>();
-            indexFileNames.put(category.getName(), categoryIndexes);
+            indexFileNames.put(categoryName, categoryIndexes);
             changed = true;
         }
         String fileName = categoryIndexes.get(indexName);
@@ -147,8 +141,8 @@ public class EngineImpl implements Engine {
     }
 
 
-    public synchronized String getFileIndexName(IndexSeries category, String fileName) {
-        HashMap<String, String> categoryIndexes = indexFileNames.get(category.getName());
+    public synchronized String getFileIndexName(String categoryName, String fileName) {
+        HashMap<String, String> categoryIndexes = indexFileNames.get(categoryName);
         if (categoryIndexes == null) {
             return null;
         }
@@ -172,3 +166,4 @@ public class EngineImpl implements Engine {
         }
     }
 }
+

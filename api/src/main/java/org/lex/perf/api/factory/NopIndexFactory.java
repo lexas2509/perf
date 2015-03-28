@@ -11,96 +11,23 @@ import java.math.BigDecimal;
  * Created by Алексей on 18.09.2014.
  */
 public class NopIndexFactory implements IndexFactory.IIndexFactory {
+
     @Override
-    public Index getIndex(final IndexSeries indexSeries, String indexName) {
-        switch (indexSeries.getIndexType()) {
-            case INSPECTION:
-                return new InspectionIndex() {
-                    @Override
-                    public void bindContext() {
-
-                    }
-
-                    @Override
-                    public void unBindContext() {
-
-                    }
-
-                    @Override
-                    public boolean isActive() {
-                        return false;
-                    }
-
-                    @Override
-                    public IndexType getIndexType() {
-                        return indexSeries.getIndexType();
-                    }
-
-                    @Override
-                    public IndexSeries getIndexSeries() {
-                        return indexSeries;
-                    }
-                };
-            case GAUGE:
-                return new GaugeIndex() {
-                    @Override
-                    public BigDecimal[] getValues() {
-                        return new BigDecimal[0];
-                    }
-
-                    @Override
-                    public String[] getItems() {
-                        return new String[0];
-                    }
-
-                    @Override
-                    public boolean isActive() {
-                        return false;
-                    }
-
-                    @Override
-                    public IndexType getIndexType() {
-                        return indexSeries.getIndexType();
-                    }
-
-                    @Override
-                    public IndexSeries getIndexSeries() {
-                        return indexSeries;
-                    }
-                };
-            case COUNTER:
-                return new CounterIndex() {
-                    @Override
-                    public void addRequest(long requestTime, long[] durations) {
-
-                    }
-
-                    @Override
-                    public boolean isActive() {
-                        return false;
-                    }
-
-                    @Override
-                    public IndexType getIndexType() {
-                        return indexSeries.getIndexType();
-                    }
-
-                    @Override
-                    public IndexSeries getIndexSeries() {
-                        return indexSeries;
-                    }
-                };
-            default:
-                throw new RuntimeException("Unknown index type");
-        }
+    public void registerGauge(IndexSeriesImpl indexSeriesImpl, GaugeIndex gaugeIndex) {
     }
 
     @Override
-    public void registerGauge(GaugeIndex gaugeIndex) {
-    }
+    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType) {
+        return new IndexSeriesImpl(indexSeriesName, indexType) {
+            @Override
+            public void bindContext(String contextName) {
 
-    @Override
-    public IndexSeries createIndexSeries(String indexSeriesName, IndexType indexType) {
-        return new IndexSeriesImpl(indexSeriesName, indexType);
+            }
+
+            @Override
+            public void unBindContext() {
+
+            }
+        };
     }
 }

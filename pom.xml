@@ -12,6 +12,7 @@
         <module>webapp</module>
         <module>core</module>
         <module>web</module>
+        <module>engine</module>
         <module>api</module>
         <module>sensor</module>
     </modules>
@@ -26,6 +27,11 @@
             <dependency>
                 <groupId>org.lex.perf</groupId>
                 <artifactId>core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.lex.perf</groupId>
+                <artifactId>engine</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

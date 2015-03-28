@@ -4,21 +4,19 @@ package org.lex.perf.sensor;
 import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
+import org.lex.perf.api.index.GaugeSensorImpl;
 
 import java.lang.management.*;
 import java.math.BigDecimal;
 
 /**
  */
-public class HeapSensor implements GaugeIndex {
+public class HeapSensor extends GaugeSensorImpl {
 
     public static final String[] HEAP_SENSORS = new String[]{"Heap", "MaxHeap", "PermGen"};
-    private boolean isActive = true;
 
     @Override
     public BigDecimal[] getValues() {
-
-
         double usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         double maxMemory = Runtime.getRuntime().maxMemory();
 
@@ -63,11 +61,6 @@ public class HeapSensor implements GaugeIndex {
         return HEAP_SENSORS;
     }
 
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
     private static MemoryPoolMXBean getPermGenMemoryPool() {
         for (final MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
             // name est "Perm Gen" ou "PS Perm Gen" (32 vs 64 bits ?)
@@ -95,13 +88,4 @@ public class HeapSensor implements GaugeIndex {
                 || "com.sun.management.UnixOperatingSystem".equals(className);
     }
 
-    @Override
-    public IndexType getIndexType() {
-        return IndexType.GAUGE;
-    }
-
-    @Override
-    public IndexSeries getIndexSeries() {
-        return org.lex.perf.sensor.JVMGauges.JVM;
-    }
 }

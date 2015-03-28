@@ -15,12 +15,8 @@ public class GaugeIndexImpl extends IndexImpl {
 
     public GaugeIndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
         super(indexFactory, engine, indexSeries, indexName);
-        gauge = new Gauge(engine, indexSeries, indexName);
-    }
-
-    @Override
-    public IndexType getIndexType() {
-        return IndexType.GAUGE;
+        gauge = new Gauge(engine, indexName, getFileName());
+        gauge.init();
     }
 
     public void putSensorValue(long eventTime, double value) {
