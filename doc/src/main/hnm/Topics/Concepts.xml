@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../helpproject.xsl" ?>
+<topic template="Default" lasteditedby="Алексей" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../helpproject.xsd">
+  <title translate="true">Concepts</title>
+  <body>
+    <header>
+      <para styleclass="Heading1"><text styleclass="Heading1" translate="true">Concepts</text></para>
+    </header>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">The key concept of perf library is an </text><text styleclass="definition" translate="true">Index</text><text styleclass="Normal" translate="true"> and </text><text styleclass="definition" translate="true">IndexSeries</text><text styleclass="Normal" translate="true">.</text></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Heading1"><text styleclass="Heading1" translate="true">Index</text></para>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">Index - object represented some measured/monitored value. There are different kinds of indexes:</text></para>
+    <para styleclass="Normal"></para>
+    <list id="371" type="ul" listtype="bullet" formatstring="&#183;" format-charset="SYMBOL_CHARSET" levelreset="true" legalstyle="false" startfrom="1" styleclass="Normal" style="font-family:Symbol; font-size:10pt; color:#000000;">
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">COUNTER</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">GAUGE</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">INSPECTION</text></li>
+    </list>
+    <para styleclass="Normal"></para>
+    <para styleclass="Heading2"><text styleclass="Heading2" translate="true">Counter Index</text></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Normal"><text styleclass="definition" translate="true">Counter Index</text><text styleclass="Normal" translate="true"> - this kind of index represents counter of some events in the system and event related data. For example: some sql request, some jms request. Each completed request is event. Each event has some characteristics such as request handling duration, request completion time, consumed cpu ticks, locks count and so on. </text></para>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">Gathering counter index data across a time allows us to answer the questions:</text></para>
+    <list id="372" level="1" type="ul" listtype="bullet" formatstring="&#111;" levelreset="true" legalstyle="false" startfrom="1" styleclass="Normal" style="font-family:&apos;Courier New&apos;; font-size:10pt; color:#000000;">
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">How much requests was executed in the last minute? </text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">What average duration of request was during last 5 minute?</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">What maximum request duration was during last 5 minute?</text></li>
+    </list>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">and generally: What &lt;some aggregation function&gt; of &lt;events&gt; was during &lt;some period&gt;?</text></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Heading2"><text styleclass="Heading2" translate="true">Gauge index</text></para>
+    <para styleclass="Heading2"></para>
+    <para styleclass="Normal"><text styleclass="definition" translate="true">Gauge index</text><text styleclass="Normal" translate="true"> - this kind of index represents a series of moment values across series of a moment. For example: cpu load, heap Usage, active users count.</text></para>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">Gathering gauge index data across a time allows us to answer the questions:</text></para>
+    <list id="373" level="1" type="ul" listtype="bullet" formatstring="&#111;" levelreset="true" legalstyle="false" startfrom="1" styleclass="Normal" style="font-family:&apos;Courier New&apos;; font-size:10pt; color:#000000;">
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">What cpu load was at 12:05:01?</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">What memory usage was at 01:02:02?</text></li>
+    </list>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">and generally What &lt;value of gauge&gt; was at &lt;some moment&gt;?</text></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Heading1"><text styleclass="Heading1" translate="true">Index Series</text></para>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">Index series were introduced to easily manage swarm of different indexes. </text></para>
+  </body>
+</topic>

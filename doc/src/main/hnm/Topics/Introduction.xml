@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../helpproject.xsl" ?>
+<topic template="Default" lasteditedby="Алексей" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../helpproject.xsd">
+  <title translate="true">Introduction</title>
+  <body>
+    <header>
+      <para styleclass="Heading1"><text styleclass="Heading1" translate="true">Introduction</text></para>
+    </header>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">The main goal of perf project is to monitor Java or Java EE application servers in QA and production environments. &#160;It is a tool to measure, calculate and gather performance data on real operation of an application depending on the usage of the application by users.</text></para>
+    <para styleclass="Normal"></para>
+    <list id="1" type="ul" listtype="bullet" formatstring="&#183;" format-charset="SYMBOL_CHARSET" levelreset="true" legalstyle="false" startfrom="1" styleclass="Normal" style="font-family:Symbol; font-size:10pt; color:#000000;">
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">Perf is an opensource library (ASL) and production ready. Perf is easy to integrate in most applications and libraries (see perf-api) and It is lightweight (no profiling agents and no external heavy database). </text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">Perf supports monitoring low-level data (cpu time, cpu lock counts, jdbc calls, http/jms requests and so on) as well as high level application data (number of open user session, user session duration, document handle time and so on).</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">Perf is very configurable. It supports adding new indexes (counters, gauges and so on), enabling/disabling gathering index data (like loggers in loggers framework).</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">Perf has very low footprint. All index data gathers asynchronously with minimal impact on main execution flow and doesn&apos;t create swarm of java objects to prevent exhaust garbage collection.</text></li>
+      <li styleclass="Normal"><text styleclass="Normal" translate="true">Perf has good support of historical data. There is an internal round robin database. It allows analyze historical data and automatically remove old data.</text></li>
+    </list>
+    <para styleclass="Normal"></para>
+    <para styleclass="Normal"><text styleclass="Normal" translate="true">The perf library idea is based on such projects: JavaMelody, JavaSimon, Jamon and so.</text></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Normal"></para>
+    <para styleclass="Normal"></para>
+  </body>
+</topic>
