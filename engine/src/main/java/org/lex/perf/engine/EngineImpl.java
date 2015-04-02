@@ -188,13 +188,17 @@ public class EngineImpl implements Engine {
     @Override
     public EngineIndex getCounter(String indexName, String indexSeriesName, IndexType indexType, boolean supportCPU, boolean supportHistogramm, String[] childSeries) {
         String fileName = getFileName(indexName, indexType, indexSeriesName);
-        return new RrdCounter(this, indexName, supportCPU, supportHistogramm, childSeries, fileName);
+        RrdCounter rrdCounter = new RrdCounter(this, indexName, supportCPU, supportHistogramm, childSeries, fileName);
+        rrdCounter.init();
+        return rrdCounter;
     }
 
     @Override
     public EngineIndex getGauge(String indexName, String indexSeriesName) {
         String fileName = getFileName(indexName, IndexType.GAUGE, indexSeriesName);
-        return new RrdGauge(this, indexName, fileName);
+        RrdGauge rrdGauge = new RrdGauge(this, indexName, fileName);
+        rrdGauge.init();
+        return rrdGauge;
     }
 
     protected String getFileName(String indexName, IndexType indexType, String indexSeriesName) {
