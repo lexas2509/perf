@@ -7,14 +7,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  */
-public class Counter extends Index<CounterTimeSlot> {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Counter.class);
+public class RrdCounter extends RrdIndex<CounterTimeSlot> {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(RrdCounter.class);
 
     boolean isSupportHistogramm;
     boolean isSupportCPU;
     String[] childSeries;
 
-    public Counter(EngineImpl engine, String name, boolean isSupportCPU, boolean isSupportHistogramm, String[] childSeries, String fileName) {
+    public RrdCounter(EngineImpl engine, String name, boolean isSupportCPU, boolean isSupportHistogramm, String[] childSeries, String fileName) {
         super(engine, name, fileName);
         this.isSupportCPU = isSupportCPU;
         this.isSupportHistogramm = isSupportHistogramm;

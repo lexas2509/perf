@@ -9,5 +9,5 @@ public interface CounterIndex extends Index {
      *
      * @param durations - параметры, ассоциированные с данным "тиком"
      */
-    void addRequest(long requestTime, long[] durations);
+    void addRequest(long requestTime, long own, long[] durations);
 }

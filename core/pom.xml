@@ -100,7 +100,7 @@
         </dependency>
         <dependency>
             <groupId>org.lex.perf</groupId>
-            <artifactId>engine</artifactId>
+            <artifactId>engine-api</artifactId>
         </dependency>
     </dependencies>
 </project>

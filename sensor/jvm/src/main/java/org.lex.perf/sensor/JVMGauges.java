@@ -12,7 +12,7 @@ public class JVMGauges {
     /**
      * Серия индексов, отображащающих одномоментные показатели JVM (текущее кол-во потоков, загруженность CPU и т.п.)
      */
-    public static final IndexSeries JVM = IndexFactory.registerIndexSeries("JVM", IndexType.GAUGE);
+    public static final IndexSeries JVM = IndexFactory.registerIndexSeries("JVM");
 
     static {
         IndexFactory.registerGauge(JVM, new org.lex.perf.sensor.CPUSensor());

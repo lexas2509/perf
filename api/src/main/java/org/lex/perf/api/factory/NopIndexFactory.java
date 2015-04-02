@@ -17,8 +17,8 @@ public class NopIndexFactory implements IndexFactory.IIndexFactory {
     }
 
     @Override
-    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType) {
-        return new IndexSeriesImpl(indexSeriesName, indexType) {
+    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName) {
+        return new IndexSeriesImpl(indexSeriesName) {
             @Override
             public void bindContext(String contextName) {
 

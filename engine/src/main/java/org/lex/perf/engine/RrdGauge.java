@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  */
-public class Gauge extends Index<GaugeTimeSlot> {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Gauge.class);
+public class RrdGauge extends RrdIndex<GaugeTimeSlot> {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(RrdGauge.class);
 
-    public Gauge(EngineImpl engine, String name, String fileName) {
+    public RrdGauge(EngineImpl engine, String name, String fileName) {
         super(engine, name, fileName);
     }
 

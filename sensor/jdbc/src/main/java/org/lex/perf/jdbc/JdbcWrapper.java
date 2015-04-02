@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class JdbcWrapper {
     private final static Logger LOGGER = LoggerFactory.getLogger(JdbcWrapper.class);
 
-    private final static IndexSeries SQL = IndexFactory.registerIndexSeries("SQL", IndexType.INSPECTION);
+    private final static IndexSeries SQL = IndexFactory.registerIndexSeries("SQL");
     /**
      * Instance singleton de JdbcWrapper (ici on ne connaît pas le ServletContext).
      */

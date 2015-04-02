@@ -8,9 +8,7 @@ import org.lex.perf.config.ChildIndexSeriesType;
 import org.lex.perf.config.ChildSeriesType;
 import org.lex.perf.config.Config;
 import org.lex.perf.config.InspectionIndexSeriesType;
-import org.lex.perf.engine.Counter;
-import org.lex.perf.engine.CounterTimeSlot;
-import org.lex.perf.engine.Duration;
+import org.lex.perf.engine.IndexEvent;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -35,8 +33,8 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
     };
 
 
-    public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name, IndexType indexType) {
-        super(name, indexType);
+    public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name) {
+        super(name);
 
         this.indexFactory = indexFactory;
 
@@ -90,33 +88,13 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
         return supportHistogramm;
     }
 
-    public IndexType getIndexType() {
-        return indexType;
-    }
-
     public String getName() {
         return name;
     }
 
-    public static class IndexEvent {
-        Counter counter;
-
-        public long requestTime;
-
-        Duration own = new Duration();
-        public Duration[] childsDurations;
-
-        public IndexEvent(int childsCount) {
-            this.childsDurations = new Duration[childsCount];
-            for (int i = 0; i < childsCount; i++) {
-                childsDurations[i] = new Duration();
-            }
-        }
-    }
-
     @Override
     public void bindContext(String contextName) {
-        InspectionIndex index = (InspectionIndex) indexFactory.getIndex(this, contextName);
+        InspectionIndex index = (InspectionIndex) indexFactory.getIndex(this, contextName, IndexType.INSPECTION);
         inspections.get().push(index);
         index.bindContext();
     }

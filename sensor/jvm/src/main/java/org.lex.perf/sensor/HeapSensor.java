@@ -88,4 +88,8 @@ public class HeapSensor extends GaugeSensorImpl {
                 || "com.sun.management.UnixOperatingSystem".equals(className);
     }
 
+    @Override
+    public String getName() {
+        return "HEAP";
+    }
 }

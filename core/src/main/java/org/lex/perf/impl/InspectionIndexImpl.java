@@ -1,11 +1,12 @@
 package org.lex.perf.impl;
 
 import com.lmax.disruptor.RingBuffer;
+import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
-import org.lex.perf.engine.Counter;
+import org.lex.perf.engine.Engine;
+import org.lex.perf.engine.EngineIndex;
 import org.lex.perf.engine.Duration;
-import org.lex.perf.engine.EngineImpl;
-import org.lex.perf.engine.Index;
+import org.lex.perf.engine.IndexEvent;
 import org.lex.perf.util.ThreadUtil;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(InspectionIndexImpl.class);
 
-    private final Counter counter;
+    private final EngineIndex counter;
     private final PerfIndexSeriesImpl perfIndexSeries;
 
     private static class InspectionElement {
@@ -38,15 +39,14 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
         }
     };
 
-    InspectionIndexImpl(IndexFactoryImpl indexFactory, EngineImpl engine, PerfIndexSeriesImpl indexSeries, String indexName) {
-        super(indexFactory, engine, indexSeries, indexName);
-        counter = new Counter(engine, indexName, indexSeries.isSupportCPU(), indexSeries.isSupportHistogramm(), indexSeries.getChildSeries(), getFileName());
-        counter.init();
+    InspectionIndexImpl(IndexFactoryImpl indexFactory, Engine engine, PerfIndexSeriesImpl indexSeries, String indexName) {
+        super(indexFactory, indexSeries, indexName, IndexType.INSPECTION);
+        counter = engine.getCounter(indexName, indexSeries.getName(), IndexType.INSPECTION, indexSeries.isSupportCPU(), indexSeries.isSupportHistogramm(), indexSeries.getChildSeries());
         perfIndexSeries = indexSeries;
     }
 
     @Override
-    public Index getIndex() {
+    public EngineIndex getIndex() {
         return counter;
     }
 
@@ -78,10 +78,10 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
         long durationCPU = ThreadUtil.getCurrentThreadCpuTime() - current.startCPU;
         long requestTime = System.currentTimeMillis();
 
-        RingBuffer<PerfIndexSeriesImpl.IndexEvent> ringBuffer = perfIndexSeries.getDisruptor().getRingBuffer();
+        RingBuffer<IndexEvent> ringBuffer = perfIndexSeries.getDisruptor().getRingBuffer();
         long sequence = ringBuffer.next();
-        PerfIndexSeriesImpl.IndexEvent event = ringBuffer.get(sequence);
-        event.counter = counter;
+        IndexEvent event = ringBuffer.get(sequence);
+        event.engineIndex = counter;
         event.requestTime = requestTime;
         event.own.count = 1;
 

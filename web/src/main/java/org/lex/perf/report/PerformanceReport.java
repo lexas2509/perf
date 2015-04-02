@@ -4,10 +4,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexType;
-import org.lex.perf.engine.Counter;
-import org.lex.perf.engine.CounterTimeSlot;
-import org.lex.perf.engine.Gauge;
-import org.lex.perf.engine.Index;
+import org.lex.perf.engine.*;
 import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.IndexImpl;
 import org.lex.perf.impl.PerfIndexSeriesImpl;
@@ -99,7 +96,7 @@ public class PerformanceReport implements HttpItem {
         return data;
     }
 
-    private static final IndexSeries GRAPH = IndexFactory.registerIndexSeries("PRF.RPT.GRPH", IndexType.INSPECTION);
+    private static final IndexSeries GRAPH = IndexFactory.registerIndexSeries("PRF.RPT.GRPH");
 
     private void buildGraph(Range reportRange, GraphItemType graphItem, StringBuilder htmlReport) {
         GRAPH.bindContext(graphItem.getItem());
@@ -114,16 +111,17 @@ public class PerformanceReport implements HttpItem {
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
             java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
-                Index index = ((IndexImpl) indexIt).getIndex();
-                switch (category.getIndexType()) {
+                IndexImpl indexIt1 = (IndexImpl) indexIt;
+                EngineIndex index = indexIt1.getIndex();
+                switch (indexIt1.getIndexType()) {
                     case COUNTER:
                     case INSPECTION:
-                        Counter counter = (Counter) index;
+                        RrdCounter counter = (RrdCounter) index;
                         graphDef.datasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
                         graphDef.area("hits", new Color(30, 255, 18), "average of " + counter.getIndexName());
                         break;
                     case GAUGE:
-                        Gauge gauge = (Gauge) index;
+                        RrdGauge gauge = (RrdGauge) index;
                         graphDef.datasource("value", gauge.getFileName(), "value", ConsolFun.AVERAGE);
                         graphDef.datasource("minvalue", gauge.getFileName(), "value", ConsolFun.MIN);
                         graphDef.datasource("maxvalue", gauge.getFileName(), "value", ConsolFun.MAX);
@@ -152,7 +150,7 @@ public class PerformanceReport implements HttpItem {
         }
     }
 
-    private static final IndexSeries HISTOGRAM = IndexFactory.registerIndexSeries("PRF.RPT.HSGM", IndexType.INSPECTION);
+    private static final IndexSeries HISTOGRAM = IndexFactory.registerIndexSeries("PRF.RPT.HSGM");
 
     private void buildHistogramTable(Range reportRange, HistogramTableItemType reportItem, StringBuilder htmlReport) {
         HISTOGRAM.bindContext(reportItem.category);
@@ -183,16 +181,16 @@ public class PerformanceReport implements HttpItem {
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
             java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
-                Index index = ((IndexImpl) indexIt).getIndex();
+                RrdIndex index = (RrdIndex)((IndexImpl) indexIt).getIndex();
                 int slotDuration = index.getSlotDuration();
                 long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
                 long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
                 DataProcessor dp = new DataProcessor(startTime, endTime);
                 dp.setStep(slotDuration / 1000);
-                switch (category.getIndexType()) {
+                switch (indexIt.getIndexType()) {
                     case COUNTER:
                     case INSPECTION:
-                        Counter counter = (Counter) index;
+                        RrdCounter counter = (RrdCounter) index;
                         dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
                         dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
 
@@ -223,7 +221,7 @@ public class PerformanceReport implements HttpItem {
                         double average = hits == 0 ? 0 : total / hits;
 
                         htmlReport.append("<TR onmouseover=\"this.className='highlight'\" onmouseout=\"this.className=''\">");
-                        htmlReport.append("<TD>" + index.getIndexName() + "</TD>");
+                        htmlReport.append("<TD>" + indexIt.getName() + "</TD>");
                         htmlReport.append("<TD class=\"numeric\">" + String.format("%16.0f", hits) + "</TD>");
                         htmlReport.append("<TD class=\"numeric\">" + String.format("%16.3f", average / 1000 / 1000) + "</TD>");
 
@@ -254,7 +252,7 @@ public class PerformanceReport implements HttpItem {
         }
     }
 
-    private static final IndexSeries TABLE = IndexFactory.registerIndexSeries("PRF.RPT.TBL", IndexType.INSPECTION);
+    private static final IndexSeries TABLE = IndexFactory.registerIndexSeries("PRF.RPT.TBL");
 
     private void buildPerfTable(Range reportRange, PerfTableItemType reportItem, StringBuilder htmlReport) {
         TABLE.bindContext(reportItem.category);
@@ -308,16 +306,16 @@ public class PerformanceReport implements HttpItem {
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
             java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(indexSeries);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
-                Index index = ((IndexImpl) indexIt).getIndex();
+                RrdIndex index = (RrdIndex)((IndexImpl) indexIt).getIndex();
                 int slotDuration = index.getSlotDuration();
                 long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
                 long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
                 DataProcessor dp = new DataProcessor(startTime, endTime);
                 dp.setStep(slotDuration / 1000);
-                switch (indexSeries.getIndexType()) {
+                switch (indexIt.getIndexType()) {
                     case COUNTER:
                     case INSPECTION:
-                        Counter counter = (Counter) index;
+                        RrdCounter counter = (RrdCounter) index;
                         dp.addDatasource("hits", counter.getFileName(), "hits", ConsolFun.TOTAL);
                         dp.addDatasource("total", counter.getFileName(), "total", ConsolFun.TOTAL);
                         if (indexSeries.isSupportCPU()) {

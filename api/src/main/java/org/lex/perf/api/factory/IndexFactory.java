@@ -39,17 +39,17 @@ public abstract class IndexFactory {
     public interface IIndexFactory {
         public void registerGauge(IndexSeriesImpl impl, GaugeIndex gaugeIndex);
 
-        IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType);
+        IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName);
     }
 
     private final static Map<String, IndexSeries> INDEX_SERIES = new ConcurrentHashMap<String, IndexSeries>();
 
-    public static synchronized IndexSeries registerIndexSeries(String indexSeriesName, IndexType indexType) {
+    public static synchronized IndexSeries registerIndexSeries(String indexSeriesName) {
         if (INDEX_SERIES.containsKey(indexSeriesName)) {
             return INDEX_SERIES.get(indexSeriesName);
         } else {
-            IndexSeriesImpl indexSeriesImpl = indexFactory.createIndexSeriesImpl(indexSeriesName, indexType);
-            IndexSeries indexSeries = new IndexSeries(indexType, indexSeriesName);
+            IndexSeriesImpl indexSeriesImpl = indexFactory.createIndexSeriesImpl(indexSeriesName);
+            IndexSeries indexSeries = new IndexSeries(indexSeriesName);
             indexSeries.configure(indexSeriesImpl, true);
             INDEX_SERIES.put(indexSeriesName, indexSeries);
             return indexSeries;

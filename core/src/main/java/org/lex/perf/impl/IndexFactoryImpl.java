@@ -1,19 +1,18 @@
 package org.lex.perf.impl;
 
 import com.lmax.disruptor.EventFactory;
-import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.lex.perf.api.factory.IndexFactory;
-import org.lex.perf.api.factory.IndexSeries;
 import org.lex.perf.api.factory.IndexSeriesImpl;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.Index;
 import org.lex.perf.config.*;
-import org.lex.perf.engine.CounterTimeSlot;
-import org.lex.perf.engine.EngineImpl;
+import org.lex.perf.engine.Engine;
+import org.lex.perf.engine.EngineFactory;
+import org.lex.perf.engine.IndexEvent;
 import org.lex.perf.sensor.SensorEngine;
 import org.lex.perf.util.JAXBUtil;
 
@@ -32,12 +31,11 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     private final java.util.concurrent.Executor executor;
 
-    private final Disruptor<PerfIndexSeriesImpl.IndexEvent> disruptor;
-
+    private final Disruptor<IndexEvent> disruptor;
 
     private SensorEngine sensorEngine;
 
-    private final EngineImpl engine;
+    private final Engine engine;
 
     private Map<String, Map<String, Index>> indexes = new ConcurrentHashMap<String, Map<String, Index>>();
 
@@ -46,34 +44,28 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     public IndexFactoryImpl() {
         String contextPath = "org.lex.perf.config";
         config = JAXBUtil.getObject(contextPath, "defaultConfig.xml");
-        engine = new EngineImpl();
+        engine = EngineFactory.getEngine();
         sensorEngine = new SensorEngine(engine);
 
         // create asynchronous handler (based on disruptor)
         executor = Executors.newSingleThreadExecutor();
-        disruptor = new Disruptor<PerfIndexSeriesImpl.IndexEvent>(INDEX_EVENT_FACTORY,
+        disruptor = new Disruptor<IndexEvent>(INDEX_EVENT_FACTORY,
                 16384, executor, ProducerType.MULTI, new SleepingWaitStrategy());
-        disruptor.handleEventsWith(handler);
+        disruptor.handleEventsWith(engine.getHandler());
         disruptor.start();
 
     }
 
-    public final EventFactory<PerfIndexSeriesImpl.IndexEvent> INDEX_EVENT_FACTORY = new EventFactory<PerfIndexSeriesImpl.IndexEvent>() {
+    public final EventFactory<IndexEvent> INDEX_EVENT_FACTORY = new EventFactory<IndexEvent>() {
         @Override
-        public PerfIndexSeriesImpl.IndexEvent newInstance() {
-            return new PerfIndexSeriesImpl.IndexEvent(MAX_CHILD_SERIES_LENGTH);
-        }
-    };
-
-    private final EventHandler<PerfIndexSeriesImpl.IndexEvent> handler = new EventHandler<PerfIndexSeriesImpl.IndexEvent>() {
-        public void onEvent(final PerfIndexSeriesImpl.IndexEvent event, final long sequence, final boolean endOfBatch) throws Exception {
-            CounterTimeSlot ts = event.counter.getTimeSlot(event.requestTime);
-            ts.addHit(event.own, event.childsDurations);
+        public IndexEvent newInstance() {
+            return new IndexEvent(MAX_CHILD_SERIES_LENGTH);
         }
     };
 
 
-    public Index getIndex(PerfIndexSeriesImpl indexSeries, String indexName) {
+
+    public Index getIndex(PerfIndexSeriesImpl indexSeries, String indexName, IndexType indexType) {
         Map<String, Index> categoryIndices = indexes.get(indexSeries.getName());
         if (categoryIndices == null) {
             synchronized (this) {
@@ -89,7 +81,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             synchronized (categoryIndices) {
                 index = categoryIndices.get(indexName);
                 if (index == null) {
-                    index = createIndex(indexSeries, indexName);
+                    index = createIndex(indexSeries, indexName, indexType);
                     categoryIndices.put(indexName, index);
                 }
             }
@@ -97,8 +89,8 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return index;
     }
 
-    private Index createIndex(PerfIndexSeriesImpl indexSeries, String indexName) {
-        switch (indexSeries.getIndexType()) {
+    private Index createIndex(PerfIndexSeriesImpl indexSeries, String indexName, IndexType indexType) {
+        switch (indexType) {
             case INSPECTION:
                 return new InspectionIndexImpl(this, engine, indexSeries, indexName);
             case COUNTER:
@@ -117,7 +109,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         int idx = 0;
 
         for (String indexItem : indexItems) {
-            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex((PerfIndexSeriesImpl)impl, indexItem);
+            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex((PerfIndexSeriesImpl)impl, indexItem, IndexType.GAUGE);
             idx++;
         }
         sensorEngine.addGaugeSensor(gaugeIndex, gaugeIndexes);
@@ -132,18 +124,20 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
     }
 
     Map<String, PerfIndexSeriesImpl> series = new ConcurrentHashMap<String, PerfIndexSeriesImpl>();
+
     @Override
-    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName, IndexType indexType) {
-        PerfIndexSeriesImpl indexSeries = new PerfIndexSeriesImpl(this, indexSeriesName, indexType);
-        List<String> loadedIndexes = engine.loadIndexesFromDisk(getCategoryPrefix(indexSeries), indexSeriesName);
-        for (String indexName : loadedIndexes) {
-            getIndex(indexSeries, indexName);
+    public IndexSeriesImpl createIndexSeriesImpl(String indexSeriesName) {
+        PerfIndexSeriesImpl indexSeries = new PerfIndexSeriesImpl(this, indexSeriesName);
+        Map<String, IndexType> loadedIndexes = engine.loadIndexes(indexSeriesName);
+
+        for (Map.Entry<String, IndexType> indexDesc : loadedIndexes.entrySet()) {
+            getIndex(indexSeries, indexDesc.getKey(), indexDesc.getValue());
         }
         series.put(indexSeriesName, indexSeries);
         return indexSeries;
     }
 
-    public EngineImpl getEngine() {
+    public Engine getEngine() {
         return engine;
     }
 
@@ -183,7 +177,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return result;
     }
 
-    public Disruptor<PerfIndexSeriesImpl.IndexEvent> getDisruptor() {
+    public Disruptor<IndexEvent> getDisruptor() {
         return disruptor;
     }
 
@@ -191,8 +185,5 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return series.get(category);
     }
 
-    public static String getCategoryPrefix(PerfIndexSeriesImpl category) {
-        return category.getIndexType().name().substring(0, 1) + "-" + category.getName();
-    }
 
 }

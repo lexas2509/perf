@@ -2,8 +2,6 @@ package org.lex.perf.filter;
 
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.api.factory.IndexType;
-import org.lex.perf.api.index.InspectionIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,15 +15,19 @@ public class HTTPFilter implements Filter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPFilter.class);
 
-    private String servletName = "HTTP";
+    private String filterName = "HTTP";
 
     IndexSeries indexSeries;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         try {
-            servletName = filterConfig.getServletContext().getServletContextName();
-            indexSeries = IndexFactory.registerIndexSeries(servletName, IndexType.INSPECTION);
+
+            String name = filterConfig.getFilterName();
+            if (name != null && name.length() > 0) {
+                filterName = name;
+            }
+            indexSeries = IndexFactory.registerIndexSeries(filterName);
         } catch (Error error) {
             LOGGER.error("", error);
             throw error;

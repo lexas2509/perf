@@ -70,7 +70,7 @@ public class SpringDataSourceFactoryBean extends AbstractFactoryBean {
         final DataSource dataSource = (DataSource) getBeanFactory().getBean(targetName,
                 DataSource.class);
         JdbcWrapper.registerSpringDataSource(targetName, dataSource);
-        JdbcWrapper jdbcWrapper = name == null ? JdbcWrapper.SINGLETON : new JdbcWrapper(IndexFactory.registerIndexSeries(name, IndexType.INSPECTION));
+        JdbcWrapper jdbcWrapper = name == null ? JdbcWrapper.SINGLETON : new JdbcWrapper(IndexFactory.registerIndexSeries(name));
         final DataSource result = jdbcWrapper.createDataSourceProxy(targetName,
                 dataSource);
         LOGGER.debug("Spring target datasource wrapped: " + targetName);

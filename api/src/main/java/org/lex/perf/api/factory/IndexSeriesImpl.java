@@ -1,8 +1,5 @@
 package org.lex.perf.api.factory;
 
-import org.lex.perf.api.index.CounterIndex;
-import org.lex.perf.api.index.InspectionIndex;
-
 /**
  */
 public abstract class IndexSeriesImpl {
@@ -11,12 +8,8 @@ public abstract class IndexSeriesImpl {
 
     protected final String name;
 
-    protected final IndexType indexType;
-
-
-    protected IndexSeriesImpl(String name, IndexType indexType) {
+    protected IndexSeriesImpl(String name) {
         this.name = name;
-        this.indexType = indexType;
     }
 
     public abstract void bindContext(String contextName);

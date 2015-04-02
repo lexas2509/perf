@@ -1,5 +1,7 @@
 package org.lex.perf.engine;
 
+import com.lmax.disruptor.EventHandler;
+import org.lex.perf.api.factory.IndexType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +39,11 @@ public class EngineImpl implements Engine {
             public void run() {
                 try {
                     long currentTime = System.currentTimeMillis();
-                    List<Index> indexList;
-                    synchronized (indexes) {
-                        indexList = new ArrayList<Index>(indexes);
+                    List<RrdIndex> rrdIndexList;
+                    synchronized (rrdIndexes) {
+                        rrdIndexList = new ArrayList<RrdIndex>(rrdIndexes);
                     }
-                    for (Index s : indexList) {
+                    for (RrdIndex s : rrdIndexList) {
                         try {
                             s.doSample(currentTime);
                         } catch (Throwable t) {
@@ -58,18 +60,36 @@ public class EngineImpl implements Engine {
         readIndexFileNames();
     }
 
-    public List<String> loadIndexesFromDisk(String categoryPrefix, String categoryName) {
-        List<String> loadedIndexes = new ArrayList<String>();
+    private static Map<String, IndexType> indexTypePrefixes = new HashMap<String, IndexType>();
+    private static Map<IndexType, String> indexTypePrefixesReverse = new HashMap<IndexType, String>();
+
+    {
+        indexTypePrefixes.put("G", IndexType.GAUGE);
+        indexTypePrefixes.put("I", IndexType.INSPECTION);
+        indexTypePrefixes.put("C", IndexType.COUNTER);
+
+        indexTypePrefixesReverse.put(IndexType.GAUGE, "G");
+        indexTypePrefixesReverse.put(IndexType.INSPECTION, "I");
+        indexTypePrefixesReverse.put(IndexType.COUNTER, "C");
+    }
+
+    public Map<String, IndexType> loadIndexes(String categoryName) {
+        Map<String, IndexType> loadedIndexes = new HashMap<String, IndexType>();
         File[] files = new File(workingDirectory).listFiles();
         if (files != null) {
             for (File file : files) {
+
+
                 String name = file.getName();
 
-                if (!name.startsWith(categoryPrefix)) {
+                String prefix = name.substring(0, 1);
+                if (!indexTypePrefixes.containsKey(prefix)) {
                     continue;
                 }
 
-                String fileNamePart1 = name.substring(categoryPrefix.length());
+                IndexType indexType = indexTypePrefixes.get(prefix);
+
+                String fileNamePart1 = name.substring(prefix.length());
 
 
                 int idx = fileNamePart1.indexOf(".rrd");
@@ -81,7 +101,7 @@ public class EngineImpl implements Engine {
                 String indexNamePart = fileNamePart1.substring(1, idx);
                 String indexName = getFileIndexName(categoryName, indexNamePart);
                 if (indexName != null) {
-                    loadedIndexes.add(indexName);
+                    loadedIndexes.put(indexName, indexType);
                 }
             }
         }
@@ -124,6 +144,64 @@ public class EngineImpl implements Engine {
     }
 
 
+    public synchronized String getFileIndexName(String categoryName, String fileName) {
+        HashMap<String, String> categoryIndexes = indexFileNames.get(categoryName);
+        if (categoryIndexes == null) {
+            return null;
+        }
+        for (Map.Entry<String, String> entry : categoryIndexes.entrySet()) {
+            if (entry.getValue().equals(fileName)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    private final List<RrdIndex> rrdIndexes = new ArrayList<RrdIndex>();
+
+    public Object getWorkingDirectory() {
+        return workingDirectory;
+    }
+
+    public void addIndex(RrdIndex rrdIndex) {
+        synchronized (rrdIndexes) {
+            rrdIndexes.add(rrdIndex);
+        }
+    }
+
+    public EventHandler<IndexEvent> getHandler() {
+        return new EventHandler<IndexEvent>() {
+            public void onEvent(final IndexEvent event, final long sequence, final boolean endOfBatch) throws Exception {
+                if (event.engineIndex instanceof RrdCounter) {
+                    RrdCounter rrdCounter = (RrdCounter) event.engineIndex;
+                    CounterTimeSlot ts = rrdCounter.getTimeSlot(event.requestTime);
+                    ts.addHit(event.own, event.childsDurations);
+                } else if (event.engineIndex instanceof RrdGauge) {
+                    RrdGauge rrdGauge = (RrdGauge) event.engineIndex;
+                    GaugeTimeSlot timeSlot = rrdGauge.getTimeSlot(event.requestTime);
+                    timeSlot.setValue(event.value.doubleValue());
+                }
+            }
+        };
+    }
+
+    @Override
+    public EngineIndex getCounter(String indexName, String indexSeriesName, IndexType indexType, boolean supportCPU, boolean supportHistogramm, String[] childSeries) {
+        String fileName = getFileName(indexName, indexType, indexSeriesName);
+        return new RrdCounter(this, indexName, supportCPU, supportHistogramm, childSeries, fileName);
+    }
+
+    @Override
+    public EngineIndex getGauge(String indexName, String indexSeriesName) {
+        String fileName = getFileName(indexName, IndexType.GAUGE, indexSeriesName);
+        return new RrdGauge(this, indexName, fileName);
+    }
+
+    protected String getFileName(String indexName, IndexType indexType, String indexSeriesName) {
+        return getIndexTypePrefix(indexType) + "-" + getIndexFileName(indexSeriesName, indexName);
+    }
+
+
     public synchronized String getIndexFileName(String categoryName, String indexName) {
         HashMap<String, String> categoryIndexes = indexFileNames.get(categoryName);
         if (categoryIndexes == null) {
@@ -140,30 +218,7 @@ public class EngineImpl implements Engine {
         return fileName;
     }
 
-
-    public synchronized String getFileIndexName(String categoryName, String fileName) {
-        HashMap<String, String> categoryIndexes = indexFileNames.get(categoryName);
-        if (categoryIndexes == null) {
-            return null;
-        }
-        for (Map.Entry<String, String> entry : categoryIndexes.entrySet()) {
-            if (entry.getValue().equals(fileName)) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-
-    private final List<Index> indexes = new ArrayList<Index>();
-
-    public Object getWorkingDirectory() {
-        return workingDirectory;
-    }
-
-    public void addIndex(Index index) {
-        synchronized (indexes) {
-            indexes.add(index);
-        }
+    private String getIndexTypePrefix(IndexType indexType) {
+        return indexTypePrefixesReverse.get(indexType);
     }
 }
-

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>perf</artifactId>
+        <groupId>org.lex.perf</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>engine-api</artifactId>
+    <packaging>jar</packaging>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.8.2</version>
+                <configuration>
+                    <args>
+                        <!-- do not generate package info. It's to place namespace info into java files -->
+                        <arg>-npa</arg>
+                    </args>
+                    <encoding>UTF-8</encoding>
+                    <forceRegenerate>true</forceRegenerate>
+                    <cleanPackageDirectories>false</cleanPackageDirectories>
+                    <strict>false</strict>
+                    <verbose>true</verbose>
+                    <extension>true</extension>
+                    <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+                    <!--                    <bindingDirectory>src/main/resources/com/bssys/sbns/integration/jaxb</bindingDirectory>
+                                        <bindingIncludes>
+                                            <include>bindings.xjb</include>
+                                        </bindingIncludes> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>report</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <episode>false</episode>
+                            <schemaDirectory>src/main/resources/</schemaDirectory>
+                            <generatePackage>org.lex.perf.report</generatePackage>
+                            <schemaIncludes>
+                                <include>report.xsd</include>
+                            </schemaIncludes>
+                        </configuration>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>config</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <episode>false</episode>
+                            <schemaDirectory>src/main/resources/</schemaDirectory>
+                            <generatePackage>org.lex.perf.config</generatePackage>
+                            <schemaIncludes>
+                                <include>config.xsd</include>
+                            </schemaIncludes>
+                        </configuration>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- logging -->
+        <dependency>
+            <groupId>org.lex.perf</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+        </dependency>
+        <dependency>
+        <groupId>org.rrd4j</groupId>
+            <artifactId>rrd4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

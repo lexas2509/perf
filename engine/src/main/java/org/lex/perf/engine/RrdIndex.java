@@ -15,8 +15,8 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  */
-public abstract class Index<T extends TimeSlot> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Index.class);
+public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RrdIndex.class);
 
     protected int slotDuration = EngineImpl.SAMPLE_DURATION; // in ms;
 
@@ -36,7 +36,7 @@ public abstract class Index<T extends TimeSlot> {
 
     protected AtomicLong sampleTime = new AtomicLong();
 
-    public Index(EngineImpl engine, String name, String fileName) {
+    public RrdIndex(EngineImpl engine, String name, String fileName) {
         this.engine = engine;
         this.indexName = name;
         this.fileName = engine.getWorkingDirectory() + "/" + fileName + ".rrd";

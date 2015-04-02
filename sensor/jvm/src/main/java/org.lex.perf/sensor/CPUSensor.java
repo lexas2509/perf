@@ -30,4 +30,9 @@ public class CPUSensor extends GaugeSensorImpl {
     public String[] getItems() {
         return new String[]{"CPU"};
     }
+
+    @Override
+    public String getName() {
+        return "CPU";
+    }
 }

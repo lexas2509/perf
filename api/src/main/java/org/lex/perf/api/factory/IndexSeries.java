@@ -7,13 +7,10 @@ public final class IndexSeries {
 
     private final String name;
 
-    private final IndexType indexType;
-
     private IndexSeriesImpl impl;
     private boolean active;
 
-    public IndexSeries(IndexType indexType, String name) {
-        this.indexType = indexType;
+    public IndexSeries(String name) {
         this.name = name;
     }
 
@@ -24,10 +21,6 @@ public final class IndexSeries {
 
     public String getName() {
         return name;
-    }
-
-    public IndexType getIndexType() {
-        return indexType;
     }
 
     public void bindContext(String contextName) {
