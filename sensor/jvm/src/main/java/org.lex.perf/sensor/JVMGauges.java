@@ -18,4 +18,8 @@ public class JVMGauges {
         IndexFactory.registerGauge(JVM, new org.lex.perf.sensor.CPUSensor());
         IndexFactory.registerGauge(JVM, new org.lex.perf.sensor.HeapSensor());
     }
+
+    public static void init() {
+
+    }
 }

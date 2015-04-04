@@ -14,9 +14,12 @@ import org.rrd4j.ConsolFun;
 import org.rrd4j.data.DataProcessor;
 import org.rrd4j.graph.RrdGraph;
 import org.rrd4j.graph.RrdGraphDef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBException;
 import java.awt.*;
 import java.io.IOException;
@@ -29,6 +32,8 @@ import java.util.Date;
  * Time: 21:24
  */
 public class PerformanceReport implements HttpItem {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PerformanceReport.class);
+
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse response) {
         try {
@@ -103,13 +108,16 @@ public class PerformanceReport implements HttpItem {
         try {
             RrdGraphDef graphDef = new RrdGraphDef();
             graphDef.setTimeSpan(reportRange.getStart().getTime() / 1000, reportRange.getEnd().getTime() / 1000);
-            PerfIndexSeriesImpl category = ((IndexFactoryImpl) IndexFactory.getFactory()).getIndexSeries(graphItem.getCategory());
-            if (category == null) {
+            IndexFactoryImpl indexFactory = (IndexFactoryImpl) IndexFactory.getFactory();
+            String category = graphItem.getCategory();
+            PerfIndexSeriesImpl perfIndexSeries = indexFactory.getIndexSeries(category);
+            if (perfIndexSeries == null) {
+                LOGGER.warn("There is no indexSeries with {}", category);
                 return;
             }
 
-            IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
-            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
+            IndexFactoryImpl impl = indexFactory;
+            java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(perfIndexSeries);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
                 IndexImpl indexIt1 = (IndexImpl) indexIt;
                 EngineIndex index = indexIt1.getIndex();
@@ -142,7 +150,8 @@ public class PerformanceReport implements HttpItem {
                     throw new RuntimeException(e);
                 }
                 byte[] img = graph.getRrdGraphInfo().getBytes();
-                String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + Base64.decodeBase64(img) + "\" />";
+
+                String reportGraph = "<img alt=\"graph\" src=\"data:image/png;base64," + DatatypeConverter.printBase64Binary(img) + "\" />";
                 htmlReport.append(reportGraph);
             }
         } finally {

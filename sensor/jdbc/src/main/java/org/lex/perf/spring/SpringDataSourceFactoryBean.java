@@ -40,9 +40,10 @@ public class SpringDataSourceFactoryBean extends AbstractFactoryBean {
     private String targetName;
     private String name;
 
-    // exemple :
-    //	<bean id="wrappedDataSource" class="net.bull.javamelody.SpringDataSourceFactoryBean">
+    // example :
+    //	<bean id="dataSourceToUse" class="net.bull.javamelody.SpringDataSourceFactoryBean">
     //		<property name="targetName" value="targetDataSource" />
+    //		<property name="name" value="MAINDB" />
     //	</bean>
     //
     //	<bean id="targetDataSource" ...
