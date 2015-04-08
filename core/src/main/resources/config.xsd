@@ -27,7 +27,7 @@
                         <xs:element name="mapsTo" type="MapsToType">
                             <xsd:annotation>
                                 <xsd:documentation><![CDATA[
-List of categories which maps to.
+List of categories which maps to. nnn
 			]]></xsd:documentation>
                             </xsd:annotation>
 
