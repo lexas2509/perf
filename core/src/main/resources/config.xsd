@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://config.perf.lex.org"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            targetNamespace="http://config.perf.lex.org" elementFormDefault="qualified">
 
     <xs:element name="Config" type="Config"/>
@@ -23,7 +24,14 @@
                         <xs:element name="childSeries" type="ChildSeriesType"/>
                     </xs:sequence>
                     <xs:sequence maxOccurs="1" minOccurs="0">
-                        <xs:element name="mapsTo" type="MapsToType"/>
+                        <xs:element name="mapsTo" type="MapsToType">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[
+List of categories which maps to.
+			]]></xsd:documentation>
+                            </xsd:annotation>
+
+                        </xs:element>
                     </xs:sequence>
                 </xs:sequence>
                 <xs:attribute name="name"/>
@@ -47,7 +55,13 @@
     </xs:complexType>
     <xs:complexType name="MapsToType">
         <xs:sequence maxOccurs="unbounded" minOccurs="0">
-            <xs:element name="mapsTo" type="MapsToSeriesType"/>
+            <xs:element name="mapsTo" type="MapsToSeriesType">
+                <xsd:annotation>
+                <xsd:documentation><![CDATA[
+Category which mapped to
+                        ]]></xsd:documentation>
+                </xsd:annotation>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>
