@@ -1,9 +1,7 @@
 package org.lex.perf.report;
 
-import org.apache.commons.codec.binary.Base64;
 import org.lex.perf.api.factory.IndexFactory;
 import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.engine.*;
 import org.lex.perf.impl.IndexFactoryImpl;
 import org.lex.perf.impl.IndexImpl;
@@ -71,7 +69,7 @@ public class PerformanceReport implements HttpItem {
         Range reportRange = new Range(startDate, endDate);
         String contextPath = "org.lex.perf.report";
         String name = "defaultReport.xml";
-        Report report = JAXBUtil.getObject(contextPath, name);
+        Report report = JAXBUtil.getObject(contextPath, name, Report.class);
         StringBuilder htmlReport = new StringBuilder();
         htmlReport.append("<html>");
         htmlReport.append("<body>");
@@ -164,7 +162,7 @@ public class PerformanceReport implements HttpItem {
     private void buildHistogramTable(Range reportRange, HistogramTableItemType reportItem, StringBuilder htmlReport) {
         HISTOGRAM.bindContext(reportItem.category);
         try {
-            PerfIndexSeriesImpl category = ((IndexFactoryImpl)IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
+            PerfIndexSeriesImpl category = ((IndexFactoryImpl) IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
             if (category == null) {
                 return;
             }
@@ -190,7 +188,7 @@ public class PerformanceReport implements HttpItem {
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
             java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(category);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
-                RrdIndex index = (RrdIndex)((IndexImpl) indexIt).getIndex();
+                RrdIndex index = (RrdIndex) ((IndexImpl) indexIt).getIndex();
                 int slotDuration = index.getSlotDuration();
                 long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
                 long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;
@@ -266,7 +264,7 @@ public class PerformanceReport implements HttpItem {
     private void buildPerfTable(Range reportRange, PerfTableItemType reportItem, StringBuilder htmlReport) {
         TABLE.bindContext(reportItem.category);
         try {
-            PerfIndexSeriesImpl indexSeries = ((IndexFactoryImpl)IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
+            PerfIndexSeriesImpl indexSeries = ((IndexFactoryImpl) IndexFactory.getFactory()).getIndexSeries(reportItem.getCategory());
             if (indexSeries == null) {
                 return;
             }
@@ -315,7 +313,7 @@ public class PerformanceReport implements HttpItem {
             IndexFactoryImpl impl = (IndexFactoryImpl) IndexFactory.getFactory();
             java.util.List<org.lex.perf.api.index.Index> indexes = impl.getIndexes(indexSeries);
             for (org.lex.perf.api.index.Index indexIt : indexes) {
-                RrdIndex index = (RrdIndex)((IndexImpl) indexIt).getIndex();
+                RrdIndex index = (RrdIndex) ((IndexImpl) indexIt).getIndex();
                 int slotDuration = index.getSlotDuration();
                 long startTime = (reportRange.getStart().getTime() / slotDuration) * slotDuration / 1000;
                 long endTime = (reportRange.getEnd().getTime() / slotDuration) * slotDuration / 1000 - 1;

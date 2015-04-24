@@ -24,6 +24,15 @@
         </mapsTo>
     </IndexSeries>
 
+    <IndexSeries name="MAINDB" allowCPU="false" allowHistogramm="true">
+        <childSeries>
+        </childSeries>
+        <mapsTo>
+            <mapsTo name="SQL"/>
+        </mapsTo>
+    </IndexSeries>
+
+
     <IndexSeries name="GRACE" allowCPU="true" allowHistogramm="true">
         <childSeries>
             <childIndexSeries name="SQL"/>

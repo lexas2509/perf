@@ -3,14 +3,13 @@ package org.lex.perf.impl;
 import com.lmax.disruptor.RingBuffer;
 import org.lex.perf.api.factory.IndexType;
 import org.lex.perf.api.index.InspectionIndex;
+import org.lex.perf.engine.Duration;
 import org.lex.perf.engine.Engine;
 import org.lex.perf.engine.EngineIndex;
-import org.lex.perf.engine.Duration;
 import org.lex.perf.engine.IndexEvent;
 import org.lex.perf.util.ThreadUtil;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Stack;
 
 /**
@@ -105,24 +104,15 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
             String[] childSeries = this.perfIndexSeries.getChildSeries();
             for (int i = 0; i < childDurations.length; i++) {
                 Duration childDuration1 = childDurations[i];
-                addDurationToParent(parent, childDuration1.count, childDuration1.duration, childDuration1.cpuDuration, childSeries[i]);
+                addDurationToParent(parent, childDuration1.count, childDuration1.duration, childDuration1.cpuDuration, i);
             }
-            addDurationToParent(parent, 1, duration - childDuration, durationCPU - childCPUDuration, this.getIndexSeries().getName());
+            addDurationToParent(parent, 1, duration - childDuration, durationCPU - childCPUDuration, this.getIndexSeries().getIndex());
         }
         ringBuffer.publish(sequence);
     }
 
-    private void addDurationToParent(InspectionElement parent, long count, long duration, long cpuDuration, String childSeries) {
-        List<String> mapsTo = indexFactory.getMapsTo(childSeries);
-        int idx = -1;
-        for (String s : mapsTo) {
-            for (int i = 0; i < parent.index.perfIndexSeries.getChildSeries().length; i++) {
-                if (parent.index.perfIndexSeries.getChildSeries()[i].equals(s)) {
-                    idx = i;
-                    break;
-                }
-            }
-        }
+    private void addDurationToParent(InspectionElement parent, long count, long duration, long cpuDuration, int childIndex) {
+        int idx = parent.index.perfIndexSeries.mapsTo(childIndex);
         if (idx == -1) {
             return;
         }
@@ -131,4 +121,5 @@ class InspectionIndexImpl extends IndexImpl implements InspectionIndex {
         foundChild.duration += duration;
         foundChild.cpuDuration += cpuDuration;
     }
+
 }

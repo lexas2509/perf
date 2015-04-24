@@ -1,0 +1,23 @@
+<Config xmlns="http://config.perf.lex.org">
+    <DefaultIndexSeries name="PERF" allowCPU="true" allowHistogramm="true">
+        <childSeries>
+            <childIndexSeries name="EXTERNAL"/>
+            <childIndexSeries name="PERF"/>
+        </childSeries>
+    </DefaultIndexSeries>
+
+
+    <IndexSeries name="SQL" allowCPU="false" allowHistogramm="true">
+        <mapsTo>
+            <mapsTo name="EXTERNAL"/>
+        </mapsTo>
+    </IndexSeries>
+
+    <IndexSeries name="JMS" allowCPU="false" allowHistogramm="true">
+        <mapsTo>
+            <mapsTo name="EXTERNAL"/>
+        </mapsTo>
+    </IndexSeries>
+
+    <IndexSeries name="EXTERNAL" allowCPU="false" allowHistogramm="true"/>
+</Config>

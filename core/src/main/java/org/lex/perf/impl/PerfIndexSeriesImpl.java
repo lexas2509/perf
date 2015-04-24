@@ -7,7 +7,7 @@ import org.lex.perf.api.index.InspectionIndex;
 import org.lex.perf.config.ChildIndexSeriesType;
 import org.lex.perf.config.ChildSeriesType;
 import org.lex.perf.config.Config;
-import org.lex.perf.config.InspectionIndexSeriesType;
+import org.lex.perf.config.IndexSeriesType;
 import org.lex.perf.engine.IndexEvent;
 
 import java.util.ArrayList;
@@ -31,6 +31,7 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
             return new Stack<InspectionIndex>();
         }
     };
+    private final int index;
 
 
     public PerfIndexSeriesImpl(IndexFactoryImpl indexFactory, String name) {
@@ -40,13 +41,17 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
 
         // detect configuration of series
         Config config = indexFactory.getConfig();
-        InspectionIndexSeriesType indexSeriesConfig = null;
-        for (InspectionIndexSeriesType idx : config.getIndexSeries()) {
+        IndexSeriesType indexSeriesConfig = null;
+        int i = 0;
+        for (IndexSeriesType idx : config.getIndexSeries()) {
             if (name.equals(idx.getName())) {
                 indexSeriesConfig = idx;
                 break;
             }
+            i++;
         }
+
+        index = i;
 
         if (indexSeriesConfig == null) {
             indexSeriesConfig = config.getDefaultIndexSeries();
@@ -108,6 +113,14 @@ public class PerfIndexSeriesImpl extends IndexSeriesImpl {
 
     public Disruptor<IndexEvent> getDisruptor() {
         return indexFactory.getDisruptor();
+    }
+
+    public int mapsTo(int childIndex) {
+        return indexFactory.getNestedChildIndexes()[childIndex][index];
+    }
+
+    public int getIndex() {
+        return index;
     }
 }
 

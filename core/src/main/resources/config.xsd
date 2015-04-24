@@ -3,43 +3,56 @@
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            targetNamespace="http://config.perf.lex.org" elementFormDefault="qualified">
 
-    <xs:element name="Config" type="Config"/>
+    <xs:element name="Config" type="Config">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+Сonfiguration root element.
+			]]></xsd:documentation>
+        </xsd:annotation>
+    </xs:element>
     <xs:complexType name="Config">
         <xs:sequence>
-            <xs:element name="DefaultIndexSeries" type="InspectionIndexSeriesType"/>
+            <xs:element name="DefaultIndexSeries" type="IndexSeriesType">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+Default index series properties definition. It is used when there is no specific configuration for IndexSeries are specified.
+			]]></xsd:documentation>
+                </xsd:annotation>
+            </xs:element>
             <xs:sequence maxOccurs="unbounded" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+List of defined IndexSeries configuration
+			]]></xsd:documentation>
+                </xsd:annotation>
                 <xs:choice>
-                    <xs:element name="IndexSeries" type="InspectionIndexSeriesType"/>
+                    <xs:element name="IndexSeries" type="IndexSeriesType"/>
                 </xs:choice>
             </xs:sequence>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="IndexSeriesType">
-    </xs:complexType>
-    <xs:complexType name="InspectionIndexSeriesType">
-        <xs:complexContent>
-            <xs:extension base="IndexSeriesType">
-                <xs:sequence maxOccurs="1" minOccurs="0">
-                    <xs:sequence maxOccurs="1" minOccurs="0">
-                        <xs:element name="childSeries" type="ChildSeriesType"/>
-                    </xs:sequence>
-                    <xs:sequence maxOccurs="1" minOccurs="0">
-                        <xs:element name="mapsTo" type="MapsToType">
-                            <xsd:annotation>
-                                <xsd:documentation><![CDATA[
-List of categories which maps to. nnn
+        <xs:sequence maxOccurs="1" minOccurs="0">
+            <xs:sequence maxOccurs="1" minOccurs="0">
+                <xs:element name="childSeries" type="ChildSeriesType"/>
+            </xs:sequence>
+            <xs:sequence maxOccurs="1" minOccurs="0">
+                <xs:element name="mapsTo" type="MapsToType">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[
+List of categories which maps to.
 			]]></xsd:documentation>
-                            </xsd:annotation>
+                    </xsd:annotation>
 
-                        </xs:element>
-                    </xs:sequence>
-                </xs:sequence>
-                <xs:attribute name="name"/>
-                <xs:attribute name="allowCPU" type="xs:boolean"/>
-                <xs:attribute name="allowHistogramm" type="xs:boolean"/>
-            </xs:extension>
-        </xs:complexContent>
+                </xs:element>
+            </xs:sequence>
+        </xs:sequence>
+        <xs:attribute name="name">
+        </xs:attribute>
+        <xs:attribute name="allowCPU" type="xs:boolean"/>
+        <xs:attribute name="allowHistogramm" type="xs:boolean"/>
     </xs:complexType>
+
     <xs:complexType name="ChildIndexSeriesType">
         <xs:attribute name="name"/>
     </xs:complexType>
@@ -57,7 +70,7 @@ List of categories which maps to. nnn
         <xs:sequence maxOccurs="unbounded" minOccurs="0">
             <xs:element name="mapsTo" type="MapsToSeriesType">
                 <xsd:annotation>
-                <xsd:documentation><![CDATA[
+                    <xsd:documentation><![CDATA[
 Category which mapped to
                         ]]></xsd:documentation>
                 </xsd:annotation>

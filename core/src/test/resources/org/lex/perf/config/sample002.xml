@@ -1,0 +1,22 @@
+<Config xmlns="http://config.perf.lex.org">
+    <!--
+ Very simple configuration. Default indexSeries has name "PERF". It gathers CPU data, histogramm data,
+ has two nested indexSeries: SQL, PERF
+
+  SQL is separate indexSeries
+ -->
+    <DefaultIndexSeries name="PERF" allowCPU="true" allowHistogramm="true">
+        <childSeries>
+            <childIndexSeries name="SQL"/>
+            <childIndexSeries name="JMS"/>
+            <childIndexSeries name="PERF"/>
+        </childSeries>
+    </DefaultIndexSeries>
+
+    <IndexSeries name="SQL" allowCPU="false" allowHistogramm="true">
+    </IndexSeries>
+
+    <IndexSeries name="JMS" allowCPU="false" allowHistogramm="true">
+    </IndexSeries>
+
+</Config>

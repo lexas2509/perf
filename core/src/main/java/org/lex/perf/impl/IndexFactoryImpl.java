@@ -15,11 +15,9 @@ import org.lex.perf.engine.EngineFactory;
 import org.lex.perf.engine.IndexEvent;
 import org.lex.perf.sensor.SensorEngine;
 import org.lex.perf.util.JAXBUtil;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
@@ -27,7 +25,11 @@ import java.util.concurrent.Executors;
  */
 public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(IndexFactoryImpl.class);
+
     public static final int MAX_CHILD_SERIES_LENGTH = 3;
+
+    public static final String INDEX_FACTORY_CONFIG = "org.lex.perf.config";
 
     private final java.util.concurrent.Executor executor;
 
@@ -39,11 +41,42 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     private Map<String, Map<String, Index>> indexes = new ConcurrentHashMap<String, Map<String, Index>>();
 
+    /**
+     * JAXB parsed configuration
+     */
     private final Config config;
 
+    /**
+     * Number of defined index series plus 1 (corresponds default index)
+     */
+    private final int seriesCount;
+
+    /**
+     * Array to optimize nested context data gathering
+     * <p/>
+     * The first index - index of child series
+     * The second index - index of parent series
+     * <p/>
+     * The value is -1  means there is no relationship,
+     * <p/>
+     * another value is idx in childSeries array of parent index corresponds that child series
+     */
+    private final int[][] nestedChildIndexes;
+
+    /**
+     *
+     */
+    private final IndexSeriesType[] indexSeriesTypes;
+
+    private final Map<String, Integer> indexMap = new HashMap<String, Integer>();
+
+
     public IndexFactoryImpl() {
-        String contextPath = "org.lex.perf.config";
-        config = JAXBUtil.getObject(contextPath, "defaultConfig.xml");
+        this(JAXBUtil.getObject(INDEX_FACTORY_CONFIG, "defaultConfig.xml", Config.class));
+    }
+
+    IndexFactoryImpl(Config config) {
+        this.config = config;
         engine = EngineFactory.getEngine();
         sensorEngine = new SensorEngine(engine);
 
@@ -54,6 +87,75 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         disruptor.handleEventsWith(engine.getHandler());
         disruptor.start();
 
+        seriesCount = config.getIndexSeries().size() + 1;
+
+        int idx = 0;
+        indexSeriesTypes = new IndexSeriesType[seriesCount];
+        for (IndexSeriesType indexSeriesType : config.getIndexSeries()) {
+            indexSeriesTypes[idx] = indexSeriesType;
+            indexMap.put(indexSeriesType.getName(), idx);
+            idx++;
+        }
+        IndexSeriesType defaultIndexSeries = config.getDefaultIndexSeries();
+        indexSeriesTypes[idx] = defaultIndexSeries;
+        indexMap.put(defaultIndexSeries.getName(), idx);
+
+
+        nestedChildIndexes = new int[seriesCount][seriesCount];
+        initNestedChildIndexes();
+    }
+
+    private void initNestedChildIndexes() {
+        for (int parentIndex = 0; parentIndex < seriesCount; parentIndex++) {
+            IndexSeriesType parent = indexSeriesTypes[parentIndex];
+            for (int childIndex = 0; childIndex < seriesCount; childIndex++) {
+                IndexSeriesType child = indexSeriesTypes[childIndex];
+                Set<String> scannedIndexes = new HashSet<String>();
+                nestedChildIndexes[childIndex][parentIndex] = findNestedParent(child, parent, scannedIndexes);
+            }
+        }
+    }
+
+    private int findNestedParent(IndexSeriesType child, IndexSeriesType parent, Set<String> scannedIndexes) {
+        ChildSeriesType childSeries = parent.getChildSeries();
+        if (childSeries == null) {
+            return -1;
+        }
+        List<ChildIndexSeriesType> childIndexSeries = childSeries.getChildIndexSeries();
+        for (int i = 0; i < childIndexSeries.size(); i++) {
+            ChildIndexSeriesType childIndexSeriesType = childIndexSeries.get(i);
+            if (child.getName().equals(childIndexSeriesType.getName())) {
+                return i;
+            }
+        }
+        MapsToType mapsTo = child.getMapsTo();
+        if (mapsTo == null) {
+            return -1;
+        }
+        List<MapsToSeriesType> mapsToType = mapsTo.getMapsTo();
+        if (mapsToType == null || mapsToType.size() == 0) {
+            return -1;
+        }
+        for (MapsToSeriesType mapsToSeriesType : mapsToType) {
+            String mapsToIndexSeriesName = mapsToSeriesType.getName();
+            if (scannedIndexes.contains(mapsToIndexSeriesName)) {
+                continue;
+            }
+
+            Integer mapsToChildIdx = this.indexMap.get(mapsToIndexSeriesName);
+            if (mapsToChildIdx == null) {
+                LOGGER.error("Unknown indexSeriesName [{}] in mapsTo for indexSeries [{}]", mapsToIndexSeriesName, child.getName());
+                continue;
+            }
+            IndexSeriesType mapsToChild = indexSeriesTypes[mapsToChildIdx];
+            HashSet<String> nextScannedIndexes = new HashSet<String>(scannedIndexes);
+            nextScannedIndexes.add(child.getName());
+            int res = findNestedParent(mapsToChild, parent, nextScannedIndexes);
+            if (res > -1) {
+                return res;
+            }
+        }
+        return -1;
     }
 
     public final EventFactory<IndexEvent> INDEX_EVENT_FACTORY = new EventFactory<IndexEvent>() {
@@ -62,7 +164,6 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             return new IndexEvent(MAX_CHILD_SERIES_LENGTH);
         }
     };
-
 
 
     public Index getIndex(PerfIndexSeriesImpl indexSeries, String indexName, IndexType indexType) {
@@ -109,7 +210,7 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         int idx = 0;
 
         for (String indexItem : indexItems) {
-            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex((PerfIndexSeriesImpl)impl, indexItem, IndexType.GAUGE);
+            gaugeIndexes[idx] = (GaugeIndexImpl) getIndex((PerfIndexSeriesImpl) impl, indexItem, IndexType.GAUGE);
             idx++;
         }
         sensorEngine.addGaugeSensor(gaugeIndex, gaugeIndexes);
@@ -147,34 +248,13 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
 
     public boolean isCpuSupported(String child) {
         Boolean isAllowCPU = null;
-        for (InspectionIndexSeriesType d : config.getIndexSeries()) {
+        for (IndexSeriesType d : config.getIndexSeries()) {
             if (d.getName().equals(child)) {
                 isAllowCPU = d.isAllowCPU();
                 break;
             }
         }
         return isAllowCPU != null ? isAllowCPU : config.getDefaultIndexSeries().isAllowCPU();
-    }
-
-    public List<String> getMapsTo(String childSeries) {
-        MapsToType mapsToType = null;
-        for (IndexSeriesType indexSeriesType : config.getIndexSeries()) {
-            if (indexSeriesType instanceof InspectionIndexSeriesType) {
-                InspectionIndexSeriesType inspectionIndexSeriesType = (InspectionIndexSeriesType) indexSeriesType;
-                if (inspectionIndexSeriesType.getName().equals(childSeries)) {
-                    mapsToType = inspectionIndexSeriesType.getMapsTo();
-                    break;
-                }
-            }
-        }
-        if (mapsToType == null) {
-            mapsToType = config.getDefaultIndexSeries().getMapsTo();
-        }
-        List<String> result = new ArrayList<String>();
-        for (MapsToSeriesType m : mapsToType.getMapsTo()) {
-            result.add(m.getName());
-        }
-        return result;
     }
 
     public Disruptor<IndexEvent> getDisruptor() {
@@ -185,5 +265,21 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
         return series.get(category);
     }
 
+    public int[][] getNestedChildIndexes() {
+        return nestedChildIndexes;
+    }
 
+    public int getSeriesCount() {
+        return seriesCount;
+    }
+
+    /**
+     * return the indexSeries's index in list. (default indexSeries is last, others has idx as they are defined in xml)
+     *
+     * @param indexSeriesName
+     * @return index of IndexSeries
+     */
+    public Integer getIndexSeriesIdx(String indexSeriesName) {
+        return indexMap.get(indexSeriesName);
+    }
 }
