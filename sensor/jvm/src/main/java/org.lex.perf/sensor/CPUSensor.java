@@ -1,9 +1,6 @@
 package org.lex.perf.sensor;
 
 
-import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.api.factory.IndexType;
-import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.GaugeSensorImpl;
 
 import java.lang.management.ManagementFactory;
@@ -19,7 +16,7 @@ public class CPUSensor extends GaugeSensorImpl {
         BigDecimal[] result = new BigDecimal[1];
         final OperatingSystemMXBean operatingSystem = ManagementFactory.getOperatingSystemMXBean();
         if (operatingSystem.getSystemLoadAverage() >= 0) {
-            result[0] = new BigDecimal(operatingSystem.getSystemLoadAverage());
+            result[0] = BigDecimal.valueOf(operatingSystem.getSystemLoadAverage());
         } else {
             result[0] = BigDecimal.ZERO;
         }
