@@ -16,4 +16,7 @@ public interface Engine {
     EngineIndex getGauge(String indexName, String name);
 
     Map<String,IndexType> loadIndexes(String indexSeriesName);
+
+    public void shutdown();
+
 }

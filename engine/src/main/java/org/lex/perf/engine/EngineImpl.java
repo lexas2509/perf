@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  */
@@ -24,7 +26,8 @@ public class EngineImpl implements Engine {
 
     public static final int WEEK = 7 * DAY;
 
-    private Timer timer = new Timer(); // Timer to gather data (samples) from state index
+
+    private ScheduledThreadPoolExecutor timer = new ScheduledThreadPoolExecutor(2); // Timer to gather data (samples) from state index
 
     private String workingDirectory = "e:/mondata/";
 
@@ -32,9 +35,11 @@ public class EngineImpl implements Engine {
 
     private boolean changed = false;
 
+    private int slotDuration = SAMPLE_DURATION;
+
     public EngineImpl() {
         // start timer
-        timer.scheduleAtFixedRate(new TimerTask() {
+        timer.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -56,8 +61,13 @@ public class EngineImpl implements Engine {
                 }
 
             }
-        }, SAMPLE_DURATION - 1, SAMPLE_DURATION);
+        }, SAMPLE_DURATION - 1, SAMPLE_DURATION, TimeUnit.MILLISECONDS);
+
         readIndexFileNames();
+    }
+
+    public void shutdown() {
+        timer.shutdown();
     }
 
     private static Map<String, IndexType> indexTypePrefixes = new HashMap<String, IndexType>();
@@ -174,8 +184,8 @@ public class EngineImpl implements Engine {
             public void onEvent(final IndexEvent event, final long sequence, final boolean endOfBatch) throws Exception {
                 if (event.engineIndex instanceof RrdCounter) {
                     RrdCounter rrdCounter = (RrdCounter) event.engineIndex;
-                    CounterTimeSlot ts = rrdCounter.getTimeSlot(event.requestTime);
-                    ts.addHit(event.own, event.childsDurations);
+                    CounterTimeSlot timeSlot = rrdCounter.getTimeSlot(event.requestTime);
+                    timeSlot.addHit(event.own, event.childsDurations);
                 } else if (event.engineIndex instanceof RrdGauge) {
                     RrdGauge rrdGauge = (RrdGauge) event.engineIndex;
                     GaugeTimeSlot timeSlot = rrdGauge.getTimeSlot(event.requestTime);
@@ -225,4 +235,9 @@ public class EngineImpl implements Engine {
     private String getIndexTypePrefix(IndexType indexType) {
         return indexTypePrefixesReverse.get(indexType);
     }
+
+    public int getSlotDuration() {
+        return slotDuration;
+    }
+
 }

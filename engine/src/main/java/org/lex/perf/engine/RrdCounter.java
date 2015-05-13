@@ -50,6 +50,7 @@ public class RrdCounter extends RrdIndex<CounterTimeSlot> {
 
     @Override
     protected CounterTimeSlot createTimeSlot(long startTime) {
+        // TODO do not create. try reuse TimeSlots after flushing
         return new CounterTimeSlot(startTime, startTime + slotDuration, isSupportCPU, isSupportHistogramm, childSeries);
     }
 

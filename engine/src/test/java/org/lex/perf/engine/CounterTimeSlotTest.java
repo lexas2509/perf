@@ -9,7 +9,7 @@ import static org.testng.Assert.assertEquals;
 public class CounterTimeSlotTest {
 
     @Test
-    public void testGistogramm() {
+    public void testHistogramm() {
         CounterTimeSlot r = new CounterTimeSlot(10, 20, false, true, new String[]{});
         r.addHit(0); // it' [0;1] - first slot
         assertEquals(r.getStatCount(0), 1);

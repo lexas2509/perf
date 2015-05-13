@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
     private static final Logger LOGGER = LoggerFactory.getLogger(RrdIndex.class);
 
-    protected int slotDuration = EngineImpl.SAMPLE_DURATION; // in ms;
+    protected int slotDuration; // in ms;
 
     private static final int NUM_OF_SLOT = 6;
 
@@ -40,6 +40,7 @@ public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
         this.engine = engine;
         this.indexName = name;
         this.fileName = engine.getWorkingDirectory() + "/" + fileName + ".rrd";
+        slotDuration = engine.getSlotDuration();
         sampleTime.set((System.currentTimeMillis() / slotDuration) * slotDuration);
     }
 
@@ -118,9 +119,12 @@ public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
 
         // if slot is from the past;
         if ((timeSlot != null) && (eventTime >= timeSlot.getEndTime())) {
+            // try to remove from ring buffer
             if (timeSlots.compareAndSet(n, timeSlot, null)) {
+                // we were successful. We need add this slot to flush queue
                 slotsToFlush.add(timeSlot);
             }
+            // reset current timeslot
             timeSlot = null;
         }
 
@@ -206,12 +210,15 @@ public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
                 //LOGGER.warn("dummy timeslot created {} ", slot.getStartTime() / 1000);
             } else {
                 if (!timeSlots.compareAndSet(n, slot, null)) {
-                    new Object();
+                    LOGGER.error("strange behavior");
                 }
             }
             slotsToFlush.put(slot.getStartTime(), slot);
         }
-        sampleTime.compareAndSet(oldSampleTime, newSampleTime);
+        if (!sampleTime.compareAndSet(oldSampleTime, newSampleTime)) {
+            LOGGER.error("strange behavior");
+        }
+        ;
 
         for (Map.Entry<Long, T> cts : slotsToFlush.entrySet()) {
             flush(cts.getValue());
@@ -220,5 +227,10 @@ public abstract class RrdIndex<T extends TimeSlot> implements EngineIndex {
 
     public int getSlotDuration() {
         return slotDuration;
+    }
+
+    @Override
+    public Engine getEngine() {
+        return engine;
     }
 }
