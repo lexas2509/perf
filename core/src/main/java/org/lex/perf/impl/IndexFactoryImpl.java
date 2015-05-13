@@ -122,9 +122,17 @@ public class IndexFactoryImpl implements IndexFactory.IIndexFactory {
             return -1;
         }
         List<ChildIndexSeriesType> childIndexSeries = childSeries.getChildIndexSeries();
+        if (childIndexSeries == null) {
+            return -1;
+        }
         for (int i = 0; i < childIndexSeries.size(); i++) {
             ChildIndexSeriesType childIndexSeriesType = childIndexSeries.get(i);
-            if (child.getName().equals(childIndexSeriesType.getName())) {
+            String name = child.getName();
+            if (name == null) {
+                LOGGER.error("Bad child definition for {} category", parent.getName());
+                continue;
+            }
+            if (name.equals(childIndexSeriesType.getName())) {
                 return i;
             }
         }

@@ -1,32 +1,14 @@
 <Config xmlns="http://config.perf.lex.org">
-    <DefaultIndexSeries allowCPU="false" allowHistogramm="false">
+    <DefaultIndexSeries name="PERF" allowCPU="false" allowHistogramm="false">
         <childSeries>
             <childIndexSeries name="SQL"/>
             <childIndexSeries name="PERF"/>
         </childSeries>
-        <mapsTo>
-            <mapsTo name="PERF"/>
-        </mapsTo>
     </DefaultIndexSeries>
 
-    <IndexSeries name="PERF" allowCPU="true" allowHistogramm="true">
-        <childSeries>
-            <childIndexSeries name="SQL"/>
-            <childIndexSeries name="PERF"/>
-        </childSeries>
-    </IndexSeries>
-
-    <IndexSeries name="SQL" allowCPU="false" allowHistogramm="true">
-        <childSeries>
-        </childSeries>
-        <mapsTo>
-            <mapsTo name="SQL"/>
-        </mapsTo>
-    </IndexSeries>
+    <IndexSeries name="SQL" allowCPU="false" allowHistogramm="true"/>
 
     <IndexSeries name="MAINDB" allowCPU="false" allowHistogramm="true">
-        <childSeries>
-        </childSeries>
         <mapsTo>
             <mapsTo name="SQL"/>
         </mapsTo>
@@ -39,7 +21,7 @@
             <childIndexSeries name="GRACE"/>
         </childSeries>
         <mapsTo>
-            <mapsTo name="GRACE"/>
+            <mapsTo name="PERF"/>
         </mapsTo>
     </IndexSeries>
 
@@ -49,7 +31,7 @@
         </childSeries>
     </IndexSeries>
 
-    <IndexSeries name="PRF.RPT.GRPH">
+    <IndexSeries name="PERF.RPT.GRPH">
         <mapsTo>
             <mapsTo name="PERF.RPT"/>
             <mapsTo name="PERF"/>
@@ -57,14 +39,12 @@
     </IndexSeries>
     <IndexSeries name="PRF.RPT.HSGM">
         <mapsTo>
-            <mapsTo name="PERF.RPT"/>
             <mapsTo name="PERF"/>
         </mapsTo>
     </IndexSeries>
 
     <IndexSeries name="PRF.RPT.TBL">
         <mapsTo>
-            <mapsTo name="PERF.RPT"/>
             <mapsTo name="PERF"/>
         </mapsTo>
     </IndexSeries>

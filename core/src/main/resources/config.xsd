@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://config.perf.lex.org"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            targetNamespace="http://config.perf.lex.org" elementFormDefault="qualified">
@@ -40,7 +41,7 @@ List of defined IndexSeries configuration
                 <xs:element name="mapsTo" type="MapsToType">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[
-List of categories which maps to.
+List of categories which maps to. Used only for nested categories.
 			]]></xsd:documentation>
                     </xsd:annotation>
 
