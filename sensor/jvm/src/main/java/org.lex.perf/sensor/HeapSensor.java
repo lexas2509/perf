@@ -1,9 +1,6 @@
 package org.lex.perf.sensor;
 
 
-import org.lex.perf.api.factory.IndexSeries;
-import org.lex.perf.api.factory.IndexType;
-import org.lex.perf.api.index.GaugeIndex;
 import org.lex.perf.api.index.GaugeSensorImpl;
 
 import java.lang.management.*;
@@ -13,7 +10,7 @@ import java.math.BigDecimal;
  */
 public class HeapSensor extends GaugeSensorImpl {
 
-    public static final String[] HEAP_SENSORS = new String[]{"Heap", "MaxHeap", "PermGen"};
+    private static final String[] HEAP_SENSORS = new String[]{"Heap", "MaxHeap", "PermGen"};
 
     @Override
     public BigDecimal[] getValues() {
@@ -50,9 +47,9 @@ public class HeapSensor extends GaugeSensorImpl {
         }
 
         BigDecimal[] result = new BigDecimal[3];
-        result[0] = new BigDecimal(usedMemory);
-        result[1] = new BigDecimal(maxMemory);
-        result[2] = new BigDecimal(usedPermGen);
+        result[0] = BigDecimal.valueOf(usedMemory);
+        result[1] = BigDecimal.valueOf(maxMemory);
+        result[2] = BigDecimal.valueOf(usedPermGen);
         return result;
     }
 
