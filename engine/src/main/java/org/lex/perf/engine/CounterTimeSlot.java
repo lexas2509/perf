@@ -32,10 +32,10 @@ public class CounterTimeSlot extends TimeSlot {
     public void addHit(long duration) {
         Duration own = new Duration();
         own.duration = duration * 1000 * 1000;
-        addHit(own, null);
+        addHitWithChild(own, null);
     }
 
-    public void addHit(Duration own, Duration[] childs) {
+    public void addHitWithChild(Duration own, Duration[] childs) {
         duration.count++;
         duration.duration = duration.duration + own.duration;
         if (supportCPU) {
