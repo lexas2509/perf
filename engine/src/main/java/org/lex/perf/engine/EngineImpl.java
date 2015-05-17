@@ -51,12 +51,12 @@ public class EngineImpl implements Engine {
                     for (RrdIndex s : rrdIndexList) {
                         try {
                             s.doSample(currentTime);
-                        } catch (Throwable t) {
+                        } catch (Exception t) {
                             LOGGER.error("error ", t);
                         }
                     }
                     saveIndexFileNames();
-                } catch (Throwable t) {
+                } catch (Exception t) {
                     LOGGER.error("error ", t);
                 }
 
@@ -185,7 +185,7 @@ public class EngineImpl implements Engine {
                 if (event.engineIndex instanceof RrdCounter) {
                     RrdCounter rrdCounter = (RrdCounter) event.engineIndex;
                     CounterTimeSlot timeSlot = rrdCounter.getTimeSlot(event.requestTime);
-                    timeSlot.addHit(event.own, event.childsDurations);
+                    timeSlot.addHitWithChild(event.own, event.childsDurations);
                 } else if (event.engineIndex instanceof RrdGauge) {
                     RrdGauge rrdGauge = (RrdGauge) event.engineIndex;
                     GaugeTimeSlot timeSlot = rrdGauge.getTimeSlot(event.requestTime);
