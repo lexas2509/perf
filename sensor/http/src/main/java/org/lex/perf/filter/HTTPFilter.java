@@ -21,20 +21,11 @@ public class HTTPFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        try {
-
-            String name = filterConfig.getFilterName();
-            if (name != null && name.length() > 0) {
-                filterName = name;
-            }
-            indexSeries = IndexFactory.registerIndexSeries(filterName);
-        } catch (Error error) {
-            LOGGER.error("", error);
-            throw error;
-        } catch (RuntimeException error) {
-            LOGGER.error("", error);
-            throw error;
+        String name = filterConfig.getFilterName();
+        if (name != null && name.length() > 0) {
+            filterName = name;
         }
+        indexSeries = IndexFactory.registerIndexSeries(filterName);
     }
 
     @Override

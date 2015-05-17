@@ -21,7 +21,7 @@ public abstract class IndexFactory {
         try {
             cl = IndexFactory.class.getClassLoader().loadClass("org.lex.perf.impl.IndexFactoryImpl");
             indexFactory = (IIndexFactory) cl.newInstance();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOGGER.error("Can't instantiate IndexFactory", e);
             indexFactory = new NopIndexFactory();
         }

@@ -1,6 +1,5 @@
 package org.lex.perf.engine;
 
-import org.lex.perf.api.factory.NopIndexFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +16,7 @@ public class EngineFactory {
         try {
             cl = EngineFactory.class.getClassLoader().loadClass("org.lex.perf.engine.EngineImpl");
             engineImpl = (Engine) cl.newInstance();
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOGGER.error("Can't instantiate IndexFactory", e);
             throw new RuntimeException(e);
         }
